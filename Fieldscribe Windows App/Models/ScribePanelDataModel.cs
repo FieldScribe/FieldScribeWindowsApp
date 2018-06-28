@@ -8,18 +8,99 @@ namespace Fieldscribe_Windows_App.Models
     {
         private static ScribesPanelDataModel _instance = null;
         private static readonly object padlock = new object();
-
+        private string _email;
+        private string _firstName;
+        private string _lastName;
+        private string _password;
+        private bool _scribeFormValid = false;
+        private bool _passwordValid = false;
+        private bool _resetPasswordValid = false;
         private IList<User> _assignedScribes;
         private IList<User> _scribes;
-        private bool _scribesListSelected;
-        private bool _assignedScribesListSelected;
+        private User _selectedScribe;
+        private bool _scribeSelected;
 
-        public IList<User> AssignedScribes
+        public bool ScribeFormValid
         {
-            get { return _assignedScribes; }
+            get { return _scribeFormValid; }
             set
             {
-                _assignedScribes = value;
+                _scribeFormValid = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool PasswordValid
+        {
+            get { return _passwordValid; }
+            set
+            {
+                _passwordValid = value;
+                CheckScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool ResetPasswordValid
+        {
+            get { return _resetPasswordValid; }
+            set
+            {
+                _resetPasswordValid = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string Email
+        {
+            get { return _email; }
+            set
+            {
+                _email = value;
+                CheckScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string FirstName
+        {
+            get { return _firstName; }
+            set
+            {
+                _firstName = value;
+                CheckScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string LastName
+        {
+            get { return _lastName; }
+            set
+            {
+                _lastName = value;
+                CheckScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string Password
+        {
+            get { return _password; }
+            set
+            {
+                _password = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public User SelectedScribe
+        {
+            get { return _selectedScribe; }
+            set
+            {
+                _selectedScribe = value;
+                ScribeSelected = (_selectedScribe != null);
                 NotifyPropertyChanged();
             }
         }
@@ -34,27 +115,27 @@ namespace Fieldscribe_Windows_App.Models
             }
         }
 
-        public bool ScribesListSelected
+        public IList<User> AssignedScribes
         {
-            get { return _scribesListSelected; }
+            get { return _assignedScribes; }
             set
             {
-                _scribesListSelected = value;
+                _assignedScribes = value;
                 NotifyPropertyChanged();
-                _assignedScribesListSelected = !_scribesListSelected;
             }
         }
 
-        public bool AssignedScribesListSelected
+        public bool ScribeSelected
         {
-            get { return _assignedScribesListSelected; }
+            get { return _scribeSelected; }
             set
             {
-                _assignedScribesListSelected = value;
+                _scribeSelected = value;
                 NotifyPropertyChanged();
-                _scribesListSelected = !_assignedScribesListSelected;
             }
         }
+
+
 
         public static ScribesPanelDataModel Instance
         {
@@ -77,6 +158,15 @@ namespace Fieldscribe_Windows_App.Models
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        private void CheckScribeForm()
+        {
+            ScribeFormValid =
+                (!string.IsNullOrEmpty(_firstName) &&
+                !string.IsNullOrEmpty(_lastName) &&
+                !string.IsNullOrEmpty(_email) &&
+                _passwordValid);
         }
     }
 }

@@ -231,6 +231,7 @@
     <Compile Include="Infrastructure\LynxFileService.cs" />
     <Compile Include="Models\Authentication\AssignScribeForm.cs" />
     <Compile Include="Models\Authentication\Credentials.cs" />
+    <Compile Include="Models\Authentication\RegisterForm.cs" />
     <Compile Include="Models\ScribePanelDataModel.cs" />
     <Compile Include="Models\SearchTermsForm.cs" />
     <Compile Include="Models\SimpleResultInfo.cs" />
@@ -247,6 +248,8 @@
     <Compile Include="SetupUserControl.xaml.cs">
       <DependentUpon>SetupUserControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Validation\NotEmptyValidationRule.cs" />
+    <Compile Include="Validation\PasswordValidationRule.cs" />
     <Page Include="DetailsUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -289,18 +292,6 @@
     <Compile Include="LoginScreen.xaml.cs">
       <DependentUpon>LoginScreen.xaml</DependentUpon>
     </Compile>
-    <Page Include="Old Code\MeetCreationScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Old Code\MeetDetailsScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Old Code\MeetSelectionScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ScribesUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -311,15 +302,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Old Code\MeetCreationScreen.xaml.cs">
-      <DependentUpon>MeetCreationScreen.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Old Code\MeetDetailsScreen.xaml.cs">
-      <DependentUpon>MeetDetailsScreen.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Old Code\MeetSelectionScreen.xaml.cs">
-      <DependentUpon>MeetSelectionScreen.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Models\Athlete.cs" />
     <Compile Include="Models\Attempt.cs" />
     <Compile Include="Models\EHorizontalMark.cs" />

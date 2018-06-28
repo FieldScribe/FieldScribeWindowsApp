@@ -1,8 +1,11 @@
 ﻿using Fieldscribe_Windows_App.Controllers;
 using Fieldscribe_Windows_App.Infrastructure;
 using Fieldscribe_Windows_App.Models;
+using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -28,8 +31,8 @@ namespace Fieldscribe_Windows_App
         private ScribesPanelDataModel _dataModel;
         private TokenManager _tokenManager;
         private bool _assignScribeSuccess;
+        private (bool, string) _registerScribeSuccess;
         private bool _removeScribeSuccess;
-        private User _selectedScribe;
 
         public ScribesUserControl()
         {
@@ -37,12 +40,13 @@ namespace Fieldscribe_Windows_App
 
             _appDataModel = AppDataModel.Instance;
             _dataModel = ScribesPanelDataModel.Instance;
+            this.DataContext = ScribesPanelDataModel.Instance;
             _tokenManager = TokenManager.Instance;
 
             try
             {
                 _dataModel.Scribes = GetAllScribes(new string[] { });
-                RefreshScribesList(_dataModel.Scribes);
+                RefreshScribesList();
             }
             catch (Exception e)
             {
@@ -52,12 +56,13 @@ namespace Fieldscribe_Windows_App
 
         private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if(this.Visibility == Visibility.Visible)
+            if (this.Visibility == Visibility.Visible)
             {
                 CollectionView view = (CollectionView)CollectionViewSource
                     .GetDefaultView(ScribesList.ItemsSource);
 
-                view.Filter = ScribesFilter;
+                if (view != null)
+                    view.Filter = ScribesFilter;
 
                 ScribesTextFilter.Text = "";
             }
@@ -66,14 +71,14 @@ namespace Fieldscribe_Windows_App
 
         private bool ScribesFilter(object item)
         {
-            if(String.IsNullOrEmpty(ScribesTextFilter.Text))
+            if (String.IsNullOrEmpty(ScribesTextFilter.Text))
             {
                 return true;
             }
             else
             {
                 return ((item as User).FirstName.IndexOf(ScribesTextFilter.Text,
-                    StringComparison.OrdinalIgnoreCase) >= 0 
+                    StringComparison.OrdinalIgnoreCase) >= 0
                     || (item as User).LastName.IndexOf(ScribesTextFilter.Text,
                     StringComparison.OrdinalIgnoreCase) >= 0
                     || (item as User).Email.IndexOf(ScribesTextFilter.Text,
@@ -83,36 +88,143 @@ namespace Fieldscribe_Windows_App
 
         private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(ScribesList.ItemsSource)
-                .Refresh();
+            if (ScribesList.ItemsSource != null)
+                CollectionViewSource.GetDefaultView(ScribesList.ItemsSource)
+                    .Refresh();
         }
+
+        private void RegisterScribeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Clear Fields
+            _dataModel.Email = null;
+            _dataModel.FirstName = null;
+            _dataModel.LastName = null;
+            PasswordBox.Password = null;
+            PasswordConfirmBox.Password = null;
+        }
+
+        private void RegisterScribeCreateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Input already validated
+            _dataModel.Password = PasswordBox.Password;
+
+            RegisterMessage.Visibility = Visibility.Hidden;
+            RegisterProgressBar.Visibility = Visibility.Visible;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_RegisterScribe;
+            worker.RunWorkerCompleted += worker_RegisterScribeComplete;
+            worker.RunWorkerAsync();
+
+        }
+
+        private void worker_RegisterScribe(object sender, DoWorkEventArgs e)
+        {
+            UsersController uc = new UsersController();
+
+            if (_tokenManager.Token != "")
+                _registerScribeSuccess = uc.RegisterScribe(
+                    new RegisterForm
+                    {
+                        Email = _dataModel.Email,
+                        Password = _dataModel.Password,
+                        FirstName = _dataModel.FirstName,
+                        LastName = _dataModel.LastName
+                    },
+                    _tokenManager.Token);
+
+            else
+                _registerScribeSuccess = (false, "Registration failed. Try again.");
+        }
+
+        private void worker_RegisterScribeComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _registerScribeSuccess;
+
+            RegisterProgressBar.Visibility = Visibility.Hidden;
+            RegisterMessage.Visibility = Visibility.Visible;
+
+            if (success)
+            {
+                RegisterMessage.Foreground = Brushes.Green;
+                RegisterMessage.Text = message;
+                ScribesDialogHost.IsOpen = false;
+            }
+            else
+            {
+                RegisterMessage.Foreground = Brushes.Red;
+                RegisterMessage.Text = message;
+            }
+
+
+        }
+
+        private void DeleteScribeBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void EditScribeBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void EditScribeSubmitBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ResetPasswordBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // Clear Fields
+            ResetPasswordBox.Password = null;
+            ConfirmResetPasswordBox.Password = null;
+        }
+
+        private void ResetPasswordSubmitBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
 
         private void ScribesListBox_SelectionChanged(
             object sender, SelectionChangedEventArgs e)
         {
-            // Check button enable conditions
-            AddScribeBtn.IsEnabled = 
-                (_appDataModel.MeetSelected && ScribesList.SelectedIndex >= 0
-                && _dataModel.ScribesListSelected);
+            if (ScribesList.SelectedIndex >= 0)
+            {
+                AssignedScribesList.SelectedIndex = -1;
+
+                AddScribeBtn.IsEnabled = _appDataModel.MeetSelected;
+
+                _dataModel.SelectedScribe = (User)ScribesList.SelectedItem;
+            }
+            else
+            {
+                AddScribeBtn.IsEnabled = false;
+            }
         }
 
         private void AssignedScribesListBox_SelectionChanged(
             object sender, SelectionChangedEventArgs e)
         {
-            RemoveScribeBtn.IsEnabled = 
-                (AssignedScribesList.SelectedIndex >= 0
-                && _dataModel.AssignedScribesListSelected);
+            if (AssignedScribesList.SelectedIndex >= 0)
+            {
+                ScribesList.SelectedIndex = -1;
+
+                RemoveScribeBtn.IsEnabled = true;
+
+                _dataModel.SelectedScribe = (User)AssignedScribesList.SelectedItem;
+            }
+            else
+            {
+                RemoveScribeBtn.IsEnabled = false;
+                _dataModel.SelectedScribe = null;
+            }
         }
 
 
         private void AddScribeBtn_Click(object sender, RoutedEventArgs e)
         {
-            // Add as scribe
-            _selectedScribe = (User)ScribesList.SelectedItem;
-
-            // Try posting to API
-            // Start Background worker thread
-
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += worker_AssignScribe;
             worker.RunWorkerCompleted += worker_AssignScribeComplete;
@@ -126,27 +238,29 @@ namespace Fieldscribe_Windows_App
             if (_tokenManager.Token != "")
                 _assignScribeSuccess = uc.AssignScribe(
                     _appDataModel.SelectedMeet.MeetId,
-                    _selectedScribe.Id, _tokenManager.Token);
+                    _dataModel.SelectedScribe.Id, _tokenManager.Token);
 
             else
-            _assignScribeSuccess = false;
+                _assignScribeSuccess = false;
         }
 
         private void worker_AssignScribeComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            if(_assignScribeSuccess)
+            if (_assignScribeSuccess)
             {
                 _dataModel.Scribes.RemoveAt(ScribesList.SelectedIndex);
-                RefreshScribesList(_dataModel.Scribes);
+                _dataModel.AssignedScribes.Add(_dataModel.SelectedScribe);
 
-                _dataModel.AssignedScribes.Add(_selectedScribe);
-                RefreshAssignedScribesList(_dataModel.AssignedScribes);
+                RefreshAssignedScribesList();
+                RefreshScribesList();
+
+                _dataModel.SelectedScribe = null;
             }
         }
 
         private void RemoveScribeBtn_Click(object sender, RoutedEventArgs e)
         {
-            _selectedScribe = (User)AssignedScribesList.SelectedItem;
+            _dataModel.SelectedScribe = (User)AssignedScribesList.SelectedItem;
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += worker_RemoveScribe;
@@ -161,55 +275,60 @@ namespace Fieldscribe_Windows_App
             if (_tokenManager.Token != "")
                 _removeScribeSuccess = uc.RemoveScribe(
                     _appDataModel.SelectedMeet.MeetId,
-                    _selectedScribe.Id, _tokenManager.Token);
+                    _dataModel.SelectedScribe.Id, _tokenManager.Token);
 
             else
-            _removeScribeSuccess = false;
+                _removeScribeSuccess = false;
         }
 
         private void worker_RemoveScribeComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (_assignScribeSuccess)
+            if (_removeScribeSuccess)
             {
                 _dataModel.AssignedScribes.RemoveAt(
                     AssignedScribesList.SelectedIndex);
-                RefreshAssignedScribesList(_dataModel.AssignedScribes);
+                _dataModel.Scribes.Add(_dataModel.SelectedScribe);
 
-                _dataModel.Scribes.Add(_selectedScribe);
-                RefreshScribesList(_dataModel.Scribes);
+                RefreshScribesList();
+                RefreshAssignedScribesList();
+
+                _dataModel.SelectedScribe = null;
             }
         }
 
-        private void RefreshScribesList(IList<User> scribes)
+
+        private void RefreshScribesList()
         {
-            List<User> sortedList = scribes
+            _dataModel.Scribes = _dataModel.Scribes
                 .OrderBy(scribe => scribe.LastName).ToList();
 
-            ScribesList.ItemsSource = sortedList.Select(scribe => new User
-            {
-                Id = scribe.Id,
-                FirstName = scribe.FirstName,
-                LastName = scribe.LastName,
-                Email = scribe.Email,
-                CreatedAt = scribe.CreatedAt,
-                Roles = scribe.Roles
-            });
+            ScribesList.ItemsSource = _dataModel.Scribes
+                .Select(scribe => new User
+                {
+                    Id = scribe.Id,
+                    FirstName = scribe.FirstName,
+                    LastName = scribe.LastName,
+                    Email = scribe.Email,
+                    CreatedAt = scribe.CreatedAt,
+                    Roles = scribe.Roles
+                });
         }
 
-        private void RefreshAssignedScribesList(IList<User> scribes)
+        private void RefreshAssignedScribesList()
         {
-            List<User> sortedList = scribes
+            _dataModel.AssignedScribes = _dataModel.AssignedScribes
                 .OrderBy(scribe => scribe.LastName).ToList();
 
-            AssignedScribesList.ItemsSource = sortedList.Select(scribe => new User
-            {
-                Id = scribe.Id,
-                FirstName = scribe.FirstName,
-                LastName = scribe.LastName,
-                Email = scribe.Email,
-                CreatedAt = scribe.CreatedAt,
-                Roles = scribe.Roles
-            });
+            AssignedScribesList.ItemsSource = _dataModel.AssignedScribes
+                .Select(scribe => new User
+                {
+                    Id = scribe.Id,
+                    FirstName = scribe.FirstName,
+                    LastName = scribe.LastName,
+                    Email = scribe.Email,
+                    CreatedAt = scribe.CreatedAt,
+                    Roles = scribe.Roles
+                });
         }
 
         IList<User> GetAllScribes(string[] searchTerms)
@@ -226,26 +345,87 @@ namespace Fieldscribe_Windows_App
             return null;
         }
 
-
-        private void AssignedScribesList_MouseEnter(object sender, MouseEventArgs e)
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            _dataModel.AssignedScribesListSelected = true;
+            if (PasswordBox.Password.Length >= 8)
+            {
+                PasswordCheck.Visibility = Visibility.Visible;
 
-            RemoveScribeBtn.IsEnabled =
-                (AssignedScribesList.SelectedIndex >= 0);
-
-            AddScribeBtn.IsEnabled = false;
+                if (PasswordConfirmBox.Password == PasswordBox.Password)
+                {
+                    _dataModel.PasswordValid = true;
+                    PasswordConfirmCheck.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    _dataModel.PasswordValid = false;
+                    PasswordConfirmCheck.Visibility = Visibility.Hidden;
+                }
+            }
+            else
+            {
+                _dataModel.PasswordValid = false;
+                PasswordCheck.Visibility = Visibility.Hidden;
+                PasswordConfirmCheck.Visibility = Visibility.Hidden;
+            }
         }
 
-        private void ScribesList_MouseEnter(object sender, MouseEventArgs e)
+        private void PasswordConfirmBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            _dataModel.ScribesListSelected = true;
+            if (PasswordConfirmBox.Password.Length >= 8 &&
+                PasswordConfirmBox.Password == PasswordBox.Password)
+            {
+                _dataModel.PasswordValid = true;
+                PasswordConfirmCheck.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _dataModel.PasswordValid = false;
+                PasswordConfirmCheck.Visibility = Visibility.Hidden;
+            }
+        }
 
-            AddScribeBtn.IsEnabled =
-                (_appDataModel.MeetSelected 
-                && ScribesList.SelectedIndex >= 0);
 
-            RemoveScribeBtn.IsEnabled = false;
+        private void ResetPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (ResetPasswordBox.Password.Length >= 8)
+            {
+                ResetPasswordCheck.Visibility = Visibility.Visible;
+
+                if (ConfirmResetPasswordBox.Password == ResetPasswordBox.Password)
+                {
+                    _dataModel.ResetPasswordValid = true;
+                    ConfirmResetPasswordCheck.Visibility = Visibility.Visible;
+                }
+
+                else
+                {
+                    _dataModel.ResetPasswordValid = false;
+                    ConfirmResetPasswordCheck.Visibility = Visibility.Hidden;
+                }
+            }
+            else
+            {
+                _dataModel.ResetPasswordValid = false;
+                ResetPasswordCheck.Visibility = Visibility.Hidden;
+                ConfirmResetPasswordCheck.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void ConfirmResetPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (ConfirmResetPasswordBox.Password.Length >= 8 &&
+                ConfirmResetPasswordBox.Password == ResetPasswordBox.Password)
+            {
+                _dataModel.ResetPasswordValid = true;
+                ConfirmResetPasswordCheck.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _dataModel.ResetPasswordValid = false;
+                ConfirmResetPasswordCheck.Visibility = Visibility.Hidden;
+            }
+
         }
     }
 }
