@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Net;
+using MaterialDesignThemes.Wpf;
 //using MaterialDesignThemes.Wpf;
 
 namespace Fieldscribe_Windows_App
@@ -53,12 +54,12 @@ namespace Fieldscribe_Windows_App
             setupPanel.MeetPicker_Open += MeetPickerOpen;
 
             try { _meets = GetMeets(); }
-            catch(Exception e)
+            catch (Exception e)
             {
                 // Will throw exception if not connected to internet
                 // TODO: Handle exception
             }
-            
+
         }
 
         private void File_Changed(object sender, FileSystemEventArgs e)
@@ -127,7 +128,7 @@ namespace Fieldscribe_Windows_App
 
         private void MeetSelectionChanged(object sender, RoutedEventArgs e)
         {
-            ScribesPanelDataModel model = 
+            ScribesPanelDataModel model =
                 ScribesPanelDataModel.Instance;
 
             model.AssignedScribes = null;
@@ -140,8 +141,9 @@ namespace Fieldscribe_Windows_App
                 model.AssignedScribes = GetScribes(_appDataModel.SelectedMeet.MeetId);
 
                 // Filter Scribe from list
-                model.Scribes = model.Scribes.Where(x => !model.AssignedScribes
-                .Any(y => y.Id == x.Id)).ToList<User>();
+                if (model.AssignedScribes != null)
+                    model.Scribes = model.Scribes.Where(x => !model.AssignedScribes
+                    .Any(y => y.Id == x.Id)).ToList<User>();
             }
             else
             {
@@ -165,11 +167,13 @@ namespace Fieldscribe_Windows_App
                 }
             ))
             { _meets = GetMeets(); } // Refresh list of meets   
+
+            //RootDialogHost.IsOpen = false;
         }
 
         private void SaveMeetBtnClicked(object sender, RoutedEventArgs e)
         {
-            if(EditMeet(
+            if (EditMeet(
                 new Meet
                 {
                     MeetId = _appDataModel.SelectedMeet.MeetId,
@@ -196,18 +200,18 @@ namespace Fieldscribe_Windows_App
 
         private void DeleteBtnClicked(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = 
+            MessageBoxResult result =
                 MessageBox.Show("Are you sure?", "Confirm Meet Deletion",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-            if(result == MessageBoxResult.Yes)
+            if (result == MessageBoxResult.Yes)
             {
                 if (DeleteMeet(_appDataModel.SelectedMeet))
                 {
                     _meets = GetMeets();
                     RefreshMeetPicker(_meets);
                     _appDataModel.SelectedMeet = null;
-                } 
+                }
             }
         }
 
@@ -231,7 +235,7 @@ namespace Fieldscribe_Windows_App
 
         private void StartStopBtnClicked(object sender, RoutedEventArgs e)
         {
-            if(!_appDataModel.UserReady)
+            if (!_appDataModel.UserReady)
             {
                 System.Threading.Thread.Sleep(100);
 
@@ -251,7 +255,7 @@ namespace Fieldscribe_Windows_App
 
                     bool success = PostLynxFiles();
 
-                    if(success)
+                    if (success)
                     {
 
                     }
@@ -260,7 +264,7 @@ namespace Fieldscribe_Windows_App
             else
             {
                 ResetStartStopBtn();
-            }  
+            }
         }
 
 
@@ -281,21 +285,21 @@ namespace Fieldscribe_Windows_App
 
             FieldScribeFileDataController fdc = new FieldScribeFileDataController();
 
-            if(_tokenManager.Token != "")
+            if (_tokenManager.Token != "")
 
                 _postLynxSuccess = fdc.AddMeetFiles(_appDataModel.SelectedMeet.MeetId,
                     lfs, _tokenManager.Token);
 
             else
-            _postLynxSuccess = false;
+                _postLynxSuccess = false;
         }
 
 
         private void worker_PostLynxFilesComplete(object sender, RunWorkerCompletedEventArgs e)
-        {  
+        {
             setupPanel.StartProgressBar.Visibility = Visibility.Hidden;
 
-            if(_postLynxSuccess)
+            if (_postLynxSuccess)
             {
                 setupPanel.InfoText.Text = "Lynx files successfully posted.";
                 setupPanel.StartStopBtn.Background = Brushes.DarkRed;
@@ -340,7 +344,7 @@ namespace Fieldscribe_Windows_App
             MeetsController mc = new MeetsController();
             var response = mc.DeleteMeet(meet);
 
-            if(response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 // Success!
                 MessageBox.Show(meet.MeetName + " successfully deleted", "Success",
@@ -349,7 +353,7 @@ namespace Fieldscribe_Windows_App
             }
             else
             {
-                MessageBox.Show("Deletion failed: " + 
+                MessageBox.Show("Deletion failed: " +
                     response.StatusCode.ToString(), "Failure",
                 MessageBoxButton.OK, MessageBoxImage.None);
             }
@@ -372,7 +376,7 @@ namespace Fieldscribe_Windows_App
             }
             else
             {
-                MessageBox.Show("Edit failed" + 
+                MessageBox.Show("Edit failed" +
                     response.StatusCode.ToString(), "Failure",
                 MessageBoxButton.OK, MessageBoxImage.None);
             }
@@ -390,12 +394,13 @@ namespace Fieldscribe_Windows_App
 
         private void RefreshMeetPicker(IList<Meet> meets)
         {
-            setupPanel.MeetPicker.ItemsSource = meets.Select(meet => new Meet
-            {
-                MeetDate = meet.MeetDate.Date,
-                MeetName = meet.MeetName,
-                MeetLocation = meet.MeetLocation
-            });
+            if (meets != null)
+                setupPanel.MeetPicker.ItemsSource = meets.Select(meet => new Meet
+                {
+                    MeetDate = meet.MeetDate.Date,
+                    MeetName = meet.MeetName,
+                    MeetLocation = meet.MeetLocation
+                });
         }
 
         IList<Meet> GetMeets()
@@ -406,7 +411,7 @@ namespace Fieldscribe_Windows_App
 
         private void RefreshAssignedScribesList(IList<User> scribes)
         {
-            if(scribes == null)
+            if (scribes == null)
             {
                 scribesPanel.AssignedScribesList.ItemsSource = null;
             }
@@ -427,7 +432,7 @@ namespace Fieldscribe_Windows_App
 
         private void RefreshScribesList(IList<User> scribes)
         {
-            if(scribes == null)
+            if (scribes == null)
             {
                 scribesPanel.AssignedScribesList.ItemsSource = null;
             }

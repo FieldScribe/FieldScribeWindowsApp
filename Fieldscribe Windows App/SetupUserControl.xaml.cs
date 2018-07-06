@@ -58,7 +58,7 @@ namespace Fieldscribe_Windows_App
                 SelectFolderBtn.Background = Brushes.Green;
                 SelectFolderBtn.BorderBrush = Brushes.Green;
                 RaiseEvent(new RoutedEventArgs(FolderSelectionChanged));
-            }    
+            }
         }
 
         private void DeleteMeetBtn_Click(object sender, RoutedEventArgs e)
@@ -82,13 +82,13 @@ namespace Fieldscribe_Windows_App
 
         private void CreateOrEditBtnClick(object sender, RoutedEventArgs e)
         {
-            if(ValidMeetEntry())
+            if (ValidMeetEntry())
             {
-                if(dialogStatus == DialogStatus.Create)
+                if (dialogStatus == DialogStatus.Create)
                 {
                     RaiseEvent(new RoutedEventArgs(CreateMeetBtnClicked));
                 }
-                else if(dialogStatus == DialogStatus.Edit)
+                else if (dialogStatus == DialogStatus.Edit)
                 {
                     RaiseEvent(new RoutedEventArgs(SaveMeetBtnClicked));
                 }
@@ -97,7 +97,7 @@ namespace Fieldscribe_Windows_App
 
         private void MeetPicker_DropDownClosed(object sender, EventArgs e)
         {
-            RaiseEvent(new RoutedEventArgs(MeetSelectionChanged));    
+            RaiseEvent(new RoutedEventArgs(MeetSelectionChanged));
         }
 
         private void MeetPicker_DropDownOpen(object sender, EventArgs e)

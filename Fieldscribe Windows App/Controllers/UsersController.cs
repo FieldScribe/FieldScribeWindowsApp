@@ -15,7 +15,7 @@ namespace Fieldscribe_Windows_App.Controllers
     {
         public (bool, User) GetLoggedInUser(string token)
         {
-            HttpResponseMessage response = 
+            HttpResponseMessage response =
                 FieldScribeAPIRequests.GETwithTokenAsync(
                 "users/me", token);
 
@@ -42,7 +42,7 @@ namespace Fieldscribe_Windows_App.Controllers
                 .POSTJsonWithTokenAsync(jsonObject, "users/scribes?orderBy=lastName",
                 token);
 
-            if(response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return (true, HttpToList(response));
 
             return (false, null);
@@ -91,6 +91,20 @@ namespace Fieldscribe_Windows_App.Controllers
             return false;
         }
 
+        public (bool, string) RegisterScribe(RegisterForm form, string token)
+        {
+            HttpResponseMessage response = FieldScribeAPIRequests
+                .POSTJsonWithTokenAsync(JsonConvert.SerializeObject(
+                    form), "users/scribe", token);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Created)
+                return (true, "Scribe successfully added");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                return (false, "User with email " + form.Email + " already exists");
+
+            return (false, "Registration failed. Try again.");
+        }
 
         private IList<User> HttpToList(HttpResponseMessage response)
         {
