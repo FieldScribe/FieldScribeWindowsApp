@@ -31,8 +31,7 @@ namespace Fieldscribe_Windows_App
                 new AuthenticationHeaderValue("Bearer", token);
 
             return client.GetAsync(
-                FieldScribeAPIRootAddress + URLExtension).Result;
-                
+                FieldScribeAPIRootAddress + URLExtension).Result;                
         }
 
         public static HttpResponseMessage POSTJsonWithTokenAsync(

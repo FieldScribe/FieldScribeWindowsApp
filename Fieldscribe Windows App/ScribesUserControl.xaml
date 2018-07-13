@@ -10,7 +10,7 @@
              IsVisibleChanged="UserControl_IsVisibleChanged">
 
 
-    <materialDesign:DialogHost x:Name="ScribesDialogHost" Identifier="ScribesDialog">
+    <materialDesign:DialogHost x:Name="ScribesDialogHost" Identifier="ScribesDialog" DialogOpened="ScribesDialogHost_DialogOpened">
         <Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="5">
@@ -167,8 +167,7 @@
 
                                                         <materialDesign:PackIcon Kind="Account" Margin="0,0,0,0" 
                                                         Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" />
-                                                        <TextBox x:Name="FirstNameTextBox" 
-                                                            materialDesign:HintAssist.Hint="First Name (required)"
+                                                        <TextBox x:Name="FirstNameTextBox" materialDesign:HintAssist.Hint="First Name (required)"
                                                             Grid.Column="1" Grid.Row="1" Margin="5 5 5 10" FontSize="14">
                                                             <TextBox.Text>
                                                                 <Binding Path="FirstName" UpdateSourceTrigger="PropertyChanged">
@@ -177,6 +176,8 @@
                                                             </TextBox.Text>
                                                         </TextBox>
 
+
+                                                        
                                                         <TextBox x:Name="LastNameTextBox" materialDesign:HintAssist.Hint="Last Name (required)"
                                                             Grid.Column="1" Grid.Row="2" Margin="5 5 5 10" FontSize="14">
                                                             <TextBox.Text>
@@ -240,8 +241,9 @@
                                                         >CREATE</Button>
 
                                                         <Button Grid.Column="1" Margin="0,5,0,0"
-                                                        Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"   
-                                                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                                            Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"   
+                                                            Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                                                            Click="RegisterScribeCancelBtn_Click"   
                                                         >CANCEL</Button>
                                                     </Grid>
                                                 </Grid>
@@ -262,37 +264,37 @@
                                     ToolTip="Delete selected scribe account">
 
                                         <Button.CommandParameter>
+                                            <StackPanel Margin="20">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="50"/>
+                                                        <RowDefinition Height="50"/>
+                                                    </Grid.RowDefinitions>
 
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="50"/>
-                                                    <RowDefinition Height="50"/>
-                                                </Grid.RowDefinitions>
-
-                                                <TextBlock Grid.Row="0" Text="Are you sure?" 
+                                                    <TextBlock Grid.Row="0" Text="Are you sure?" 
                                                 FontSize="16" Margin="0,20,0,0"
                                                 HorizontalAlignment="Center"/>
 
-                                                <Grid Grid.Row="1">
+                                                    <Grid Grid.Row="1">
 
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
 
-                                                    <Button x:Name="DeleteScribeYesBtn" Grid.Column="0" Width="70"
+                                                        <Button x:Name="DeleteScribeYesBtn" Grid.Column="0" Width="70"
                                                         Style="{StaticResource MaterialDesignFlatButton}"
                                                         Click="DeleteScribeBtn_Click">
-                                                        YES</Button>
+                                                            YES</Button>
 
-                                                    <Button Grid.Column="1"
+                                                        <Button Grid.Column="1"
                                                         Style="{StaticResource MaterialDesignFlatButton}" 
                                                         Width="90"  Padding="0,0,0,0"  IsCancel="True" 
                                                         Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
-                                                        CANCEL</Button>
+                                                            CANCEL</Button>
+                                                    </Grid>
                                                 </Grid>
-
-                                            </Grid>
+                                            </StackPanel>
                                         </Button.CommandParameter>
 
                                         <materialDesign:PackIcon Foreground="White" Kind="AccountRemove" Opacity=".99"
@@ -326,27 +328,19 @@
 
                                                         <materialDesign:PackIcon Kind="Account" Margin="0,0,0,0" 
                                                         Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
-                                                        <TextBox x:Name="EditFirstNameTextBox" materialDesign:HintAssist.Hint="First Name"
-                                                         Grid.Column="1" Grid.Row="0" Margin="5 5 5 5" FontSize="14"
-                                                         Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                        <TextBox x:Name="EditFirstNameTextBox" materialDesign:HintAssist.Hint="First Name"     
+                                                            Grid.Column="1" Grid.Row="0" Margin="5 5 5 5" FontSize="14"
+                                                            Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                                                             <TextBox.Text>
-                                                                <Binding Path="SelectedScribe.FirstName" UpdateSourceTrigger="PropertyChanged">
-                                                                    <Binding.ValidationRules>
-                                                                        <local:NotEmptyValidationRule ValidatesOnTargetUpdated="True" />
-                                                                    </Binding.ValidationRules>
-                                                                </Binding>
+                                                                <Binding Path="EditScribeFirstName" UpdateSourceTrigger="PropertyChanged" />
                                                             </TextBox.Text>
                                                         </TextBox>
 
                                                         <TextBox x:Name="EditLastNameTextBox" materialDesign:HintAssist.Hint="Last Name"
-                                                         Grid.Column="1" Grid.Row="1" Margin="5 15 5 5" FontSize="14"
-                                                         Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                            Grid.Column="1" Grid.Row="1" Margin="5 15 5 5" FontSize="14"
+                                                            Style="{StaticResource MaterialDesignFloatingHintTextBox}">
                                                             <TextBox.Text>
-                                                                <Binding Path="SelectedScribe.LastName" UpdateSourceTrigger="PropertyChanged">
-                                                                    <Binding.ValidationRules>
-                                                                        <local:NotEmptyValidationRule ValidatesOnTargetUpdated="True" />
-                                                                    </Binding.ValidationRules>
-                                                                </Binding>
+                                                                <Binding Path="EditScribeLastName" UpdateSourceTrigger="PropertyChanged"/>
                                                             </TextBox.Text>
                                                         </TextBox>
                                                     </Grid>
@@ -360,6 +354,7 @@
                                                         <Button x:Name="EditScribeSubmitBtn" Grid.Column="0" Margin="0,20,0,0"
                                                             Style="{StaticResource MaterialDesignFlatButton}"
                                                             Click="EditScribeSubmitBtn_Click"
+                                                            IsEnabled="{Binding Path=EditScribeFormValid, Mode=TwoWay}"    
                                                             >SUBMIT</Button>
 
                                                         <Button Grid.Column="1" Margin="0,20,0,0"
@@ -442,7 +437,7 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
 
-                                                        <Button x:Name="ResetPasswordSubmitBtn" Grid.Column="0" Margin="0,20,0,0"
+                                                        <Button x:Name="ResetPasswordSubmitBtn" Grid.Column="0" Margin="0,20,0,0"                                                               
                                                             Style="{StaticResource MaterialDesignFlatButton}"
                                                             IsEnabled="{Binding Path=ResetPasswordValid, Mode=TwoWay}"
                                                             Click="ResetPasswordSubmitBtn_Click" 

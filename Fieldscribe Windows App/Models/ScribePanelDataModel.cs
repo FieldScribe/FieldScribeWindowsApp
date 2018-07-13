@@ -12,7 +12,10 @@ namespace Fieldscribe_Windows_App.Models
         private string _firstName;
         private string _lastName;
         private string _password;
+        private string _editScribeFirstName;
+        private string _editScribeLastName;
         private bool _scribeFormValid = false;
+        private bool _editScribeFormValid = false;
         private bool _passwordValid = false;
         private bool _resetPasswordValid = false;
         private IList<User> _assignedScribes;
@@ -26,6 +29,16 @@ namespace Fieldscribe_Windows_App.Models
             set
             {
                 _scribeFormValid = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool EditScribeFormValid
+        {
+            get { return _editScribeFormValid; }
+            set
+            {
+                _editScribeFormValid = value;
                 NotifyPropertyChanged();
             }
         }
@@ -94,6 +107,28 @@ namespace Fieldscribe_Windows_App.Models
             }
         }
 
+        public string EditScribeFirstName
+        {
+            get { return _editScribeFirstName; }
+            set
+            {
+                _editScribeFirstName = value;
+                CheckEditScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string EditScribeLastName
+        {
+            get { return _editScribeLastName; }
+            set
+            {
+                _editScribeLastName = value;
+                CheckEditScribeForm();
+                NotifyPropertyChanged();
+            }
+        }
+
         public User SelectedScribe
         {
             get { return _selectedScribe; }
@@ -136,7 +171,6 @@ namespace Fieldscribe_Windows_App.Models
         }
 
 
-
         public static ScribesPanelDataModel Instance
         {
             get
@@ -167,6 +201,13 @@ namespace Fieldscribe_Windows_App.Models
                 !string.IsNullOrEmpty(_lastName) &&
                 !string.IsNullOrEmpty(_email) &&
                 _passwordValid);
+        }
+
+        private void CheckEditScribeForm()
+        {
+            EditScribeFormValid =
+                (!string.IsNullOrEmpty(_editScribeFirstName) &&
+                !string.IsNullOrEmpty(_editScribeLastName));
         }
     }
 }

@@ -115,26 +115,33 @@ namespace Fieldscribe_Windows_App
             worker.DoWork += worker_RegisterScribe;
             worker.RunWorkerCompleted += worker_RegisterScribeComplete;
             worker.RunWorkerAsync();
-
         }
 
         private void worker_RegisterScribe(object sender, DoWorkEventArgs e)
         {
             UsersController uc = new UsersController();
 
-            if (_tokenManager.Token != "")
-                _registerScribeSuccess = uc.RegisterScribe(
-                    new RegisterForm
-                    {
-                        Email = _dataModel.Email,
-                        Password = _dataModel.Password,
-                        FirstName = _dataModel.FirstName,
-                        LastName = _dataModel.LastName
-                    },
-                    _tokenManager.Token);
+            Task t = Task.Run(() => {
+                if (_tokenManager.Token != "")
 
-            else
+                    _registerScribeSuccess = uc.RegisterScribe(
+                        new RegisterForm
+                        {
+                            Email = _dataModel.Email,
+                            Password = _dataModel.Password,
+                            FirstName = _dataModel.FirstName,
+                            LastName = _dataModel.LastName
+                        },
+                        _tokenManager.Token);
+
+                else
+                    _registerScribeSuccess = (false, "Registration failed. Try again.");
+
+            });
+
+            if(! t.Wait(10000))
                 _registerScribeSuccess = (false, "Registration failed. Try again.");
+
         }
 
         private void worker_RegisterScribeComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -155,9 +162,14 @@ namespace Fieldscribe_Windows_App
                 RegisterMessage.Foreground = Brushes.Red;
                 RegisterMessage.Text = message;
             }
-
-
         }
+
+
+        private void RegisterScribeCancelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            RegisterMessage.Visibility = Visibility.Hidden;
+        }
+
 
         private void DeleteScribeBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -166,7 +178,8 @@ namespace Fieldscribe_Windows_App
 
         private void EditScribeBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            _dataModel.EditScribeFirstName = _dataModel.SelectedScribe.FirstName;
+            _dataModel.EditScribeLastName = _dataModel.SelectedScribe.LastName;
         }
 
         private void EditScribeSubmitBtn_Click(object sender, RoutedEventArgs e)
@@ -426,6 +439,13 @@ namespace Fieldscribe_Windows_App
                 ConfirmResetPasswordCheck.Visibility = Visibility.Hidden;
             }
 
+        }
+
+
+        private void ScribesDialogHost_DialogOpened(object sender, DialogOpenedEventArgs eventArgs)
+        {
+            EditFirstNameTextBox.CaretIndex = EditFirstNameTextBox.Text.Length;
+            EditLastNameTextBox.CaretIndex = EditLastNameTextBox.Text.Length;
         }
     }
 }
