@@ -32,6 +32,7 @@ namespace Fieldscribe_Windows_App
         private TokenManager _tokenManager;
         private bool _assignScribeSuccess;
         private (bool, string) _registerScribeSuccess;
+        private (bool, string) _updateScribeSuccess;
         private bool _removeScribeSuccess;
 
         public ScribesUserControl()
@@ -101,6 +102,8 @@ namespace Fieldscribe_Windows_App
             _dataModel.LastName = null;
             PasswordBox.Password = null;
             PasswordConfirmBox.Password = null;
+
+            RegisterMessage.Visibility = Visibility.Hidden;
         }
 
         private void RegisterScribeCreateBtn_Click(object sender, RoutedEventArgs e)
@@ -184,8 +187,68 @@ namespace Fieldscribe_Windows_App
 
         private void EditScribeSubmitBtn_Click(object sender, RoutedEventArgs e)
         {
+            UpdateMessage.Visibility = Visibility.Hidden;
+            UpdateProgressBar.Visibility = Visibility.Visible;
 
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += woker_UpdateScribe;
+            worker.RunWorkerCompleted += worker_UpdateScribeComplete;
+            worker.RunWorkerAsync();
         }
+
+
+        private void woker_UpdateScribe(object sender, DoWorkEventArgs e)
+        {
+            UsersController uc = new UsersController();
+
+            if (_tokenManager.Token != "")
+
+                _updateScribeSuccess = uc.UpdateScribe(
+                    new EditUserForm
+                    {
+                        UserId = _dataModel.SelectedScribe.Id,
+                        Email = _dataModel.Email,
+                        FirstName = _dataModel.EditScribeFirstName,
+                        LastName = _dataModel.EditScribeLastName
+                    },
+                    _tokenManager.Token);
+
+            else
+                _registerScribeSuccess = (false, "Update failed. Try again.");
+
+            //Task t = Task.Run(() => {
+  
+
+            //});
+
+            //if (!t.Wait(10000))
+            //    _registerScribeSuccess = (false, "Update failed. Try again.");
+        }
+
+
+        private void worker_UpdateScribeComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _updateScribeSuccess;
+
+            UpdateProgressBar.Visibility = Visibility.Hidden;
+            
+
+            if(success)
+            {
+                ScribesDialogHost.IsOpen = false;
+                _dataModel.Scribes[ScribesList.SelectedIndex].FirstName =
+                    EditFirstNameTextBox.Text;
+                _dataModel.Scribes[ScribesList.SelectedIndex].LastName =
+                    EditLastNameTextBox.Text;
+            }
+            else
+            {
+                UpdateMessage.Foreground = Brushes.Red;
+                UpdateMessage.Text = message;
+                UpdateMessage.Visibility = Visibility.Visible;               
+            }
+        }
+
 
         private void ResetPasswordBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -193,6 +256,7 @@ namespace Fieldscribe_Windows_App
             ResetPasswordBox.Password = null;
             ConfirmResetPasswordBox.Password = null;
         }
+
 
         private void ResetPasswordSubmitBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -438,7 +502,6 @@ namespace Fieldscribe_Windows_App
                 _dataModel.ResetPasswordValid = false;
                 ConfirmResetPasswordCheck.Visibility = Visibility.Hidden;
             }
-
         }
 
 

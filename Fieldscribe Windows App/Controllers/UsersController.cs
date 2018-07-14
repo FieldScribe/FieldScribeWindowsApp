@@ -91,6 +91,7 @@ namespace Fieldscribe_Windows_App.Controllers
             return false;
         }
 
+
         public (bool, string) RegisterScribe(RegisterForm form, string token)
         {
             HttpResponseMessage response = FieldScribeAPIRequests
@@ -105,6 +106,20 @@ namespace Fieldscribe_Windows_App.Controllers
 
             return (false, "Registration failed. Try again.");
         }
+
+
+        public (bool, string) UpdateScribe(EditUserForm form, string token)
+        {
+            HttpResponseMessage response = FieldScribeAPIRequests
+                .POSTJsonWithTokenAsync(JsonConvert.SerializeObject(
+                    form), "users/edit", token);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return (true, "Scribe successfully updated");
+
+            return (false, "Update failed. Try again.");
+        }
+
 
         private IList<User> HttpToList(HttpResponseMessage response)
         {

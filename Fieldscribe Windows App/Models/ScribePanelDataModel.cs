@@ -109,7 +109,7 @@ namespace Fieldscribe_Windows_App.Models
 
         public string EditScribeFirstName
         {
-            get { return _editScribeFirstName; }
+            get{ return _editScribeFirstName; }
             set
             {
                 _editScribeFirstName = value;

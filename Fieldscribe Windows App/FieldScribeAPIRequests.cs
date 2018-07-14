@@ -40,11 +40,20 @@ namespace Fieldscribe_Windows_App
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
 
-            return client.PostAsync(
-                FieldScribeAPIRootAddress + URLExtension,
-                new StringContent(jsonObject.ToString(), 
-                Encoding.UTF8, "application/json"))
-                .Result;
+            try
+            {
+                return client.PostAsync(
+                    FieldScribeAPIRootAddress + URLExtension,
+                    new StringContent(jsonObject.ToString(),
+                    Encoding.UTF8, "application/json"))
+                    .Result;
+            }
+            catch(Exception e)
+            {
+                // TODO: Handle errors if PostAsync throws exception
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
+
         }
 
         public static HttpResponseMessage POSTUrlEncodedAsync(
