@@ -268,14 +268,31 @@
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="50"/>
+                                                        <RowDefinition Height="20"/>
                                                         <RowDefinition Height="50"/>
                                                     </Grid.RowDefinitions>
 
                                                     <TextBlock Grid.Row="0" Text="Are you sure?" 
-                                                FontSize="16" Margin="0,20,0,0"
-                                                HorizontalAlignment="Center"/>
+                                                        FontSize="16" Margin="0,20,0,0"
+                                                        HorizontalAlignment="Center"/>
 
                                                     <Grid Grid.Row="1">
+
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock x:Name="DeleteScribeMessage" Grid.Column="0" Foreground="Black"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Bottom">
+
+                                                        </TextBlock>
+
+                                                        <ProgressBar x:Name="DeleteScribeProgressBar" Grid.Column="0" Margin="0,0,0,0" 
+                                                            Visibility="Hidden" VerticalAlignment="Bottom"
+                                                            Width="120" IsIndeterminate="True" />
+                                                    </Grid>
+                                                    
+                                                    <Grid Grid.Row="2">
 
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -284,8 +301,8 @@
 
                                                         <Button x:Name="DeleteScribeYesBtn" Grid.Column="0" Width="70"
                                                         Style="{StaticResource MaterialDesignFlatButton}"
-                                                        Click="DeleteScribeBtn_Click">
-                                                            YES</Button>
+                                                        Click="DeleteScribeDeleteBtn_Click">
+                                                            DELETE</Button>
 
                                                         <Button Grid.Column="1"
                                                         Style="{StaticResource MaterialDesignFlatButton}" 

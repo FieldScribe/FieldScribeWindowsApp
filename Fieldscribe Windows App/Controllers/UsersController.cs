@@ -91,6 +91,17 @@ namespace Fieldscribe_Windows_App.Controllers
             return false;
         }
 
+        public (bool, string) DeleteScribe(Guid userId, string token)
+        {
+            HttpResponseMessage response = FieldScribeAPIRequests
+                .POSTJsonWithTokenAsync(JsonConvert.SerializeObject(userId),
+                "users/delete", token);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return (true, null);
+
+            return (false, "Failed to delete user");
+        }
 
         public (bool, string) RegisterScribe(RegisterForm form, string token)
         {

@@ -32,6 +32,7 @@ namespace Fieldscribe_Windows_App
         private TokenManager _tokenManager;
         private bool _assignScribeSuccess;
         private (bool, string) _registerScribeSuccess;
+        private (bool, string) _deleteScribeSuccess;
         private (bool, string) _updateScribeSuccess;
         private bool _removeScribeSuccess;
 
@@ -179,6 +180,51 @@ namespace Fieldscribe_Windows_App
 
         }
 
+        private void DeleteScribeDeleteBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteScribeMessage.Visibility = Visibility.Hidden;
+            DeleteScribeProgressBar.Visibility = Visibility.Visible;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_DeleteScribe;
+            worker.RunWorkerCompleted += worker_DeleteScribeComplete;
+            worker.RunWorkerAsync();
+        }
+
+        private void worker_DeleteScribe(object sender, DoWorkEventArgs e)
+        {
+            UsersController uc = new UsersController();
+
+            if (_tokenManager.Token != "")
+
+                _deleteScribeSuccess = uc.DeleteScribe(
+                    _dataModel.SelectedScribe.Id,
+                    _tokenManager.Token);
+
+            else
+                _deleteScribeSuccess = (false, "Failed to delete user. Try again.");
+        }
+
+        private void worker_DeleteScribeComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _updateScribeSuccess;
+
+            DeleteScribeProgressBar.Visibility = Visibility.Hidden;
+
+            if (success)
+            {
+                ScribesDialogHost.IsOpen = false;
+                _dataModel.Scribes.Remove(_dataModel.SelectedScribe);
+                RefreshScribesList();
+            }
+            else
+            {
+                UpdateMessage.Foreground = Brushes.Red;
+                UpdateMessage.Text = message;
+                UpdateMessage.Visibility = Visibility.Visible;
+            }
+        }
+
         private void EditScribeBtn_Click(object sender, RoutedEventArgs e)
         {
             _dataModel.EditScribeFirstName = _dataModel.SelectedScribe.FirstName;
@@ -191,13 +237,13 @@ namespace Fieldscribe_Windows_App
             UpdateProgressBar.Visibility = Visibility.Visible;
 
             BackgroundWorker worker = new BackgroundWorker();
-            worker.DoWork += woker_UpdateScribe;
+            worker.DoWork += worker_UpdateScribe;
             worker.RunWorkerCompleted += worker_UpdateScribeComplete;
             worker.RunWorkerAsync();
         }
 
 
-        private void woker_UpdateScribe(object sender, DoWorkEventArgs e)
+        private void worker_UpdateScribe(object sender, DoWorkEventArgs e)
         {
             UsersController uc = new UsersController();
 
@@ -207,7 +253,7 @@ namespace Fieldscribe_Windows_App
                     new EditUserForm
                     {
                         UserId = _dataModel.SelectedScribe.Id,
-                        Email = _dataModel.Email,
+                        Email = _dataModel.SelectedScribe.Email,
                         FirstName = _dataModel.EditScribeFirstName,
                         LastName = _dataModel.EditScribeLastName
                     },
@@ -240,6 +286,7 @@ namespace Fieldscribe_Windows_App
                     EditFirstNameTextBox.Text;
                 _dataModel.Scribes[ScribesList.SelectedIndex].LastName =
                     EditLastNameTextBox.Text;
+                RefreshScribesList();
             }
             else
             {
@@ -510,5 +557,7 @@ namespace Fieldscribe_Windows_App
             EditFirstNameTextBox.CaretIndex = EditFirstNameTextBox.Text.Length;
             EditLastNameTextBox.CaretIndex = EditLastNameTextBox.Text.Length;
         }
+
+
     }
 }
