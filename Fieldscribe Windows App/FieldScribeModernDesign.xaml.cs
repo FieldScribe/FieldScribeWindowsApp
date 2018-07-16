@@ -452,7 +452,7 @@ namespace Fieldscribe_Windows_App
         }
 
 
-        IList<User> GetScribes(int meetId)
+        private IList<User> GetScribes(int meetId)
         {
             (bool success, IList<User> scribes) =
                 new UsersController().GetScribesForMeet(

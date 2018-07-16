@@ -233,6 +233,7 @@
     <Compile Include="Models\Authentication\Credentials.cs" />
     <Compile Include="Models\Authentication\RegisterForm.cs" />
     <Compile Include="Models\Authentication\EditUserForm.cs" />
+    <Compile Include="Models\Authentication\ResetPasswordForm.cs" />
     <Compile Include="Models\ScribePanelDataModel.cs" />
     <Compile Include="Models\SearchTermsForm.cs" />
     <Compile Include="Models\SimpleResultInfo.cs" />

@@ -97,11 +97,14 @@ namespace Fieldscribe_Windows_App.Controllers
                 .POSTJsonWithTokenAsync(JsonConvert.SerializeObject(userId),
                 "users/delete", token);
 
+            string text = response.Content.ReadAsStringAsync().Result;
+
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 return (true, null);
 
-            return (false, "Failed to delete user");
+            return (false, Message(response));
         }
+
 
         public (bool, string) RegisterScribe(RegisterForm form, string token)
         {
@@ -110,8 +113,14 @@ namespace Fieldscribe_Windows_App.Controllers
                     form), "users/scribe", token);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Created)
-                return (true, "Scribe successfully added");
+            {
+                string id = JObject.Parse(
+                response.Content.ReadAsStringAsync()
+                .Result)["id"].ToString();
 
+                return (true, id);
+            }
+                
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
                 return (false, "User with email " + form.Email + " already exists");
 
@@ -131,6 +140,20 @@ namespace Fieldscribe_Windows_App.Controllers
             return (false, "Update failed. Try again.");
         }
 
+        public (bool, string) ResetPassword(ResetPasswordForm form, string token)
+        {
+            HttpResponseMessage response = FieldScribeAPIRequests
+                .POSTJsonWithTokenAsync(JsonConvert.SerializeObject(
+                    form), "users/password", token);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return (true, "Password reset successful");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return (false, "Not authorized to reset password");
+
+            return (false, Message(response));
+        }
 
         private IList<User> HttpToList(HttpResponseMessage response)
         {
@@ -144,6 +167,13 @@ namespace Fieldscribe_Windows_App.Controllers
                 users.Add(item.ToObject<User>());
 
             return users;
+        }
+
+        private string Message(HttpResponseMessage response)
+        {
+            return JObject.Parse(
+                response.Content.ReadAsStringAsync()
+                .Result)["message"].ToString();
         }
     }
 }

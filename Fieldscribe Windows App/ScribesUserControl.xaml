@@ -234,13 +234,13 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
 
-                                                        <Button x:Name="RegisterScribeCreateBtn" Grid.Column="0" Margin="0,5,0,0"
+                                                        <Button x:Name="RegisterScribeCreateBtn" Grid.Column="0" Margin="0,10,0,0"
                                                             Style="{StaticResource MaterialDesignFlatButton}"
                                                             IsEnabled="{Binding Path=ScribeFormValid, Mode=TwoWay}"
                                                             Click="RegisterScribeCreateBtn_Click"
                                                         >CREATE</Button>
 
-                                                        <Button Grid.Column="1" Margin="0,5,0,0"
+                                                        <Button Grid.Column="1" Margin="0,10,0,0"
                                                             Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"   
                                                             Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
                                                             Click="RegisterScribeCancelBtn_Click"   
@@ -302,7 +302,7 @@
                                                         <Button x:Name="DeleteScribeYesBtn" Grid.Column="0" Width="70"
                                                         Style="{StaticResource MaterialDesignFlatButton}"
                                                         Click="DeleteScribeDeleteBtn_Click">
-                                                            DELETE</Button>
+                                                            YES</Button>
 
                                                         <Button Grid.Column="1"
                                                         Style="{StaticResource MaterialDesignFlatButton}" 
@@ -415,6 +415,7 @@
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="20"/>
                                                         <RowDefinition Height="*"/>
                                                     </Grid.RowDefinitions>
 
@@ -460,8 +461,11 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
 
+                                                        <TextBlock x:Name="ResetPasswordMessage" Grid.Column="0" Foreground="Black"
+                                                            Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+
                                                         <ProgressBar x:Name="ResetPasswordProgressBar" Grid.Column="0" Margin="0,0,0,0" 
-                                                            Visibility="Visible"
+                                                            Visibility="Hidden" VerticalAlignment="Bottom"
                                                             Width="120" IsIndeterminate="True" />
                                                     </Grid>
 
@@ -471,13 +475,13 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
 
-                                                        <Button x:Name="ResetPasswordSubmitBtn" Grid.Column="0" Margin="0,20,0,0"                                                               
+                                                        <Button x:Name="ResetPasswordSubmitBtn" Grid.Column="0" Margin="0,10,0,0"                                                               
                                                             Style="{StaticResource MaterialDesignFlatButton}"
                                                             IsEnabled="{Binding Path=ResetPasswordValid, Mode=TwoWay}"
                                                             Click="ResetPasswordSubmitBtn_Click" 
                                                             >SUBMIT</Button>
 
-                                                        <Button Grid.Column="1" Margin="0,20,0,0"
+                                                        <Button Grid.Column="1" Margin="0,10,0,0"
                                                             Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"   
                                                             Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
                                                             >CANCEL</Button>

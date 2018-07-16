@@ -34,6 +34,7 @@ namespace Fieldscribe_Windows_App
         private (bool, string) _registerScribeSuccess;
         private (bool, string) _deleteScribeSuccess;
         private (bool, string) _updateScribeSuccess;
+        private (bool, string) _resetPasswordSuccess;
         private bool _removeScribeSuccess;
 
         public ScribesUserControl()
@@ -124,28 +125,21 @@ namespace Fieldscribe_Windows_App
         private void worker_RegisterScribe(object sender, DoWorkEventArgs e)
         {
             UsersController uc = new UsersController();
+            
+            if (_tokenManager.Token != "")
 
-            Task t = Task.Run(() => {
-                if (_tokenManager.Token != "")
+                _registerScribeSuccess = uc.RegisterScribe(
+                    new RegisterForm
+                    {
+                        Email = _dataModel.Email,
+                        Password = _dataModel.Password,
+                        FirstName = _dataModel.FirstName,
+                        LastName = _dataModel.LastName
+                    },
+                    _tokenManager.Token);
 
-                    _registerScribeSuccess = uc.RegisterScribe(
-                        new RegisterForm
-                        {
-                            Email = _dataModel.Email,
-                            Password = _dataModel.Password,
-                            FirstName = _dataModel.FirstName,
-                            LastName = _dataModel.LastName
-                        },
-                        _tokenManager.Token);
-
-                else
-                    _registerScribeSuccess = (false, "Registration failed. Try again.");
-
-            });
-
-            if(! t.Wait(10000))
+            else
                 _registerScribeSuccess = (false, "Registration failed. Try again.");
-
         }
 
         private void worker_RegisterScribeComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -153,18 +147,27 @@ namespace Fieldscribe_Windows_App
             (bool success, string message) = _registerScribeSuccess;
 
             RegisterProgressBar.Visibility = Visibility.Hidden;
-            RegisterMessage.Visibility = Visibility.Visible;
-
+           
             if (success)
             {
-                RegisterMessage.Foreground = Brushes.Green;
-                RegisterMessage.Text = message;
                 ScribesDialogHost.IsOpen = false;
+
+                // Add Scribe to list
+                _dataModel.Scribes.Add(new User
+                {
+                    Id = new Guid(message),
+                    Email = _dataModel.Email,
+                    FirstName = _dataModel.FirstName,
+                    LastName = _dataModel.LastName
+                });
+
+                RefreshScribesList();
             }
             else
             {
                 RegisterMessage.Foreground = Brushes.Red;
                 RegisterMessage.Text = message;
+                RegisterMessage.Visibility = Visibility.Visible;
             }
         }
 
@@ -207,14 +210,14 @@ namespace Fieldscribe_Windows_App
 
         private void worker_DeleteScribeComplete(object sender, RunWorkerCompletedEventArgs e)
         {
-            (bool success, string message) = _updateScribeSuccess;
+            (bool success, string message) = _deleteScribeSuccess;
 
             DeleteScribeProgressBar.Visibility = Visibility.Hidden;
 
             if (success)
             {
                 ScribesDialogHost.IsOpen = false;
-                _dataModel.Scribes.Remove(_dataModel.SelectedScribe);
+                _dataModel.Scribes.RemoveAt(ScribesList.SelectedIndex);
                 RefreshScribesList();
             }
             else
@@ -260,15 +263,7 @@ namespace Fieldscribe_Windows_App
                     _tokenManager.Token);
 
             else
-                _registerScribeSuccess = (false, "Update failed. Try again.");
-
-            //Task t = Task.Run(() => {
-  
-
-            //});
-
-            //if (!t.Wait(10000))
-            //    _registerScribeSuccess = (false, "Update failed. Try again.");
+                _updateScribeSuccess = (false, "Update failed. Try again.");
         }
 
 
@@ -302,12 +297,57 @@ namespace Fieldscribe_Windows_App
             // Clear Fields
             ResetPasswordBox.Password = null;
             ConfirmResetPasswordBox.Password = null;
+
+            ResetPasswordMessage.Visibility = Visibility.Hidden;
+            ResetPasswordProgressBar.Visibility = Visibility.Hidden;
         }
 
 
         private void ResetPasswordSubmitBtn_Click(object sender, RoutedEventArgs e)
         {
+            ResetPasswordProgressBar.Visibility = Visibility.Visible;
 
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_UpdatePassword;
+            worker.RunWorkerCompleted += worker_UpdatePasswordComplete;
+            worker.RunWorkerAsync();
+        }
+
+        private void worker_UpdatePassword(object sender, DoWorkEventArgs e)
+        {
+            UsersController uc = new UsersController();
+
+            if (_tokenManager.Token != "")
+
+                _resetPasswordSuccess = uc.ResetPassword(
+                    new ResetPasswordForm
+                    {
+                        UserId = _dataModel.SelectedScribe.Id,
+                        NewPassword = ResetPasswordBox.Password
+                    },
+                    _tokenManager.Token);
+
+            else
+                _registerScribeSuccess = (false, "Password reset failed");
+        }
+
+
+        private void worker_UpdatePasswordComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _resetPasswordSuccess;
+
+            ResetPasswordProgressBar.Visibility = Visibility.Hidden;
+
+            if(success)
+            {
+                ScribesDialogHost.IsOpen = false;
+            }
+            else
+            {
+                ResetPasswordMessage.Foreground = Brushes.Red;
+                ResetPasswordMessage.Text = message;
+                ResetPasswordMessage.Visibility = Visibility.Visible;
+            }
         }
 
 
@@ -327,6 +367,7 @@ namespace Fieldscribe_Windows_App
                 AddScribeBtn.IsEnabled = false;
             }
         }
+
 
         private void AssignedScribesListBox_SelectionChanged(
             object sender, SelectionChangedEventArgs e)
@@ -559,5 +600,16 @@ namespace Fieldscribe_Windows_App
         }
 
 
+        private IList<User> GetScribes(int meetId)
+        {
+            (bool success, IList<User> scribes) =
+                new UsersController().GetScribesForMeet(
+                meetId, _tokenManager.Token);
+
+            if (success)
+                return scribes;
+
+            return null;
+        }
     }
 }
