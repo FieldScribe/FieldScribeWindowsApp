@@ -236,6 +236,7 @@
     <Compile Include="Models\Authentication\ResetPasswordForm.cs" />
     <Compile Include="Models\ScribePanelDataModel.cs" />
     <Compile Include="Models\SearchTermsForm.cs" />
+    <Compile Include="Models\SetupPanelDataModel.cs" />
     <Compile Include="Models\SimpleResultInfo.cs" />
     <Compile Include="Models\Mark.cs" />
     <Compile Include="Models\ResultsHeader.cs" />

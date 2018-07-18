@@ -8,6 +8,8 @@ namespace Fieldscribe_Windows_App.Models
     {
         private static ScribesPanelDataModel _instance = null;
         private static readonly object padlock = new object();
+        private Meet _meet = null;
+        private bool _meetSelected = false;
         private string _email;
         private string _firstName;
         private string _lastName;
@@ -22,6 +24,29 @@ namespace Fieldscribe_Windows_App.Models
         private IList<User> _scribes;
         private User _selectedScribe;
         private bool _scribeSelected;
+
+
+        public Meet SelectedMeet
+        {
+            get { return _meet; }
+            set
+            {
+                _meet = value;
+                NotifyPropertyChanged();
+
+                MeetSelected = (_meet != null);
+            }
+        }
+
+        public bool MeetSelected
+        {
+            get { return _meetSelected; }
+            set
+            {
+                _meetSelected = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public bool ScribeFormValid
         {

@@ -26,15 +26,21 @@ namespace Fieldscribe_Windows_App
     /// </summary>
     public partial class SetupUserControl : UserControl
     {
+        private SetupPanelDataModel _dataModel;
         private string path = string.Empty;
         private enum DialogStatus { Edit, Create };
-        private DialogStatus dialogStatus;
+        private (bool, string) _deleteMeetSuccess;
+        private (bool, string) _editMeetSuccess;
 
         public SetupUserControl()
         {
             InitializeComponent();
 
-            MeasurementPicker.ItemsSource = new string[] { "English", "Metric" };
+            _dataModel = SetupPanelDataModel.Instance;
+            this.DataContext = SetupPanelDataModel.Instance;
+           
+            CreateMeetMeasurementPicker.ItemsSource = new string[] { "English", "Metric" };
+            EditMeetMeasurementPicker.ItemsSource = new string[] { "English", "Metric" };
         }
 
 
@@ -61,38 +67,34 @@ namespace Fieldscribe_Windows_App
             }
         }
 
-        private void DeleteMeetBtn_Click(object sender, RoutedEventArgs e)
-        {
-            RaiseEvent(new RoutedEventArgs(DeleteBtnClicked));
-        }
-
         private void EditMeetBtn_Click(object sender, RoutedEventArgs e)
         {
-            dialogStatus = DialogStatus.Edit;
-            CreateOrEditBtn.Content = "SAVE";
-            RaiseEvent(new RoutedEventArgs(EditBtnClicked));
+            EditMeetProgressBar.Visibility = Visibility.Hidden;
+            EditMeetMessage.Visibility = Visibility.Hidden;
+
+            _dataModel.MeetName = _dataModel.SelectedMeet.MeetName;
+            _dataModel.MeetLocation = _dataModel.SelectedMeet.MeetLocation;
+            _dataModel.MeetDate = _dataModel.SelectedMeet.MeetDate;
+            _dataModel.MeasurementType = _dataModel.SelectedMeet.MeasurementType;
         }
 
-        private void AddMeetBtn_Click(object sender, RoutedEventArgs e)
+        private void DeleteMeetBtn_Click(object sender, RoutedEventArgs e)
         {
-            dialogStatus = DialogStatus.Create;
-            CreateOrEditBtn.Content = "CREATE";
+            DeleteMeetProgressBar.Visibility = Visibility.Hidden;
+            DeleteMeetMessage.Visibility = Visibility.Hidden;
+        }
+
+        private void CreateMeetBtn_Click(object sender, RoutedEventArgs e)
+        {
+            CreateMeetProgressBar.Visibility = Visibility.Hidden;
+            CreateMeetMessage.Visibility = Visibility.Hidden;
+
             ClearCreateMeetFields();
         }
-
-        private void CreateOrEditBtnClick(object sender, RoutedEventArgs e)
+        
+        private void CreateMeetCreateBtnClick(object sender, RoutedEventArgs e)
         {
-            if (ValidMeetEntry())
-            {
-                if (dialogStatus == DialogStatus.Create)
-                {
-                    RaiseEvent(new RoutedEventArgs(CreateMeetBtnClicked));
-                }
-                else if (dialogStatus == DialogStatus.Edit)
-                {
-                    RaiseEvent(new RoutedEventArgs(SaveMeetBtnClicked));
-                }
-            }
+            RaiseEvent(new RoutedEventArgs(CreateMeetBtnClicked));   
         }
 
         private void MeetPicker_DropDownClosed(object sender, EventArgs e)
@@ -115,6 +117,81 @@ namespace Fieldscribe_Windows_App
             RaiseEvent(new RoutedEventArgs(StartStopBtnClicked));
         }
 
+        private void EditMeetSaveBtnClick(object sender, RoutedEventArgs e)
+        {
+            EditMeetProgressBar.Visibility = Visibility.Visible;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_EditMeet;
+            worker.RunWorkerCompleted += worker_EditMeetComplete;
+            worker.RunWorkerAsync();
+        }
+
+        private void worker_EditMeet(object sender, DoWorkEventArgs e)
+        {
+            MeetsController mc = new MeetsController();
+
+            _editMeetSuccess = mc.EditMeet(new Meet
+                {
+                    MeetId = _dataModel.SelectedMeet.MeetId,
+                    MeetName = _dataModel.MeetName,
+                    MeetLocation = _dataModel.MeetLocation,
+                    MeetDate = (DateTime)_dataModel.MeetDate,
+                    MeasurementType = _dataModel.MeasurementType
+                });
+        }
+
+        private void worker_EditMeetComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _editMeetSuccess;
+
+            if(success)
+            {
+                RaiseEvent(new RoutedEventArgs(MeetSaved));
+                RaiseEvent(new RoutedEventArgs(CloseDialog));
+            }
+            else
+            {
+                EditMeetMessage.Text = message;
+                EditMeetMessage.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void DeleteMeetYesBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteMeetProgressBar.Visibility = Visibility.Visible;
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_DeleteMeet;
+            worker.RunWorkerCompleted += worker_DeleteMeetComplete;
+            worker.RunWorkerAsync();
+        }
+
+        private void worker_DeleteMeet(object sender, DoWorkEventArgs e)
+        {
+            MeetsController mc = new MeetsController();
+
+            _deleteMeetSuccess = mc.DeleteMeet(
+                _dataModel.SelectedMeet.MeetId);
+        }
+
+        private void worker_DeleteMeetComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _deleteMeetSuccess;
+
+            DeleteMeetProgressBar.Visibility = Visibility.Hidden;
+
+            if (success)
+            {
+                RaiseEvent(new RoutedEventArgs(MeetDeleted));
+                RaiseEvent(new RoutedEventArgs(CloseDialog));
+            }
+            else
+            {
+                DeleteMeetMessage.Text = message;
+                DeleteMeetMessage.Visibility = Visibility.Visible;
+            }
+        }
 
         #endregion
 
@@ -123,21 +200,14 @@ namespace Fieldscribe_Windows_App
 
         #region Helper Functions
 
-        private bool ValidMeetEntry()
-        {
-            return (
-                CreatMeetDatePicker.SelectedDate != null &&
-                MeetNameBox.Text != "" &&
-                MeetLocationBox.Text != "" &&
-                MeasurementPicker.SelectedItem != null);
-        }
 
         private void ClearCreateMeetFields()
         {
-            CreatMeetDatePicker.SelectedDate = null;
-            MeetNameBox.Text = "";
-            MeetLocationBox.Text = "";
-            MeasurementPicker.SelectedItem = null;
+            _dataModel.MeetName = null;
+            _dataModel.MeetLocation = null;
+            _dataModel.MeetDate = null;
+            CreateMeetMeasurementPicker.SelectedIndex = -1;
+            CreateMeetMeasurementPicker.SelectedValue = null;
         }
 
         #endregion
@@ -187,14 +257,14 @@ namespace Fieldscribe_Windows_App
             remove { RemoveHandler(StartStopBtnClicked, value); }
         }
 
-        public static readonly RoutedEvent DeleteBtnClicked =
-            EventManager.RegisterRoutedEvent("DeleteBtn_Click",
+        public static readonly RoutedEvent MeetDeleted =
+            EventManager.RegisterRoutedEvent("Meet_Deleted",
             RoutingStrategy.Direct, typeof(RoutedEventHandler), typeof(SetupUserControl));
 
-        public event RoutedEventHandler DeleteBtn_Clicked
+        public event RoutedEventHandler Meet_Deleted
         {
-            add { AddHandler(DeleteBtnClicked, value); }
-            remove { RemoveHandler(DeleteBtnClicked, value); }
+            add { AddHandler(MeetDeleted, value); }
+            remove { RemoveHandler(MeetDeleted, value); }
         }
 
         public static readonly RoutedEvent EditBtnClicked =
@@ -217,14 +287,24 @@ namespace Fieldscribe_Windows_App
             remove { RemoveHandler(CreateMeetBtnClicked, value); }
         }
 
-        public static readonly RoutedEvent SaveMeetBtnClicked =
-            EventManager.RegisterRoutedEvent("SaveMeetBtn_Click",
+        public static readonly RoutedEvent MeetSaved =
+            EventManager.RegisterRoutedEvent("Meet_Saved",
             RoutingStrategy.Direct, typeof(RoutedEventHandler), typeof(SetupUserControl));
 
-        public event RoutedEventHandler SaveMeetBtn_Clicked
+        public event RoutedEventHandler Meet_Saved
         {
-            add { AddHandler(SaveMeetBtnClicked, value); }
-            remove { RemoveHandler(SaveMeetBtnClicked, value); }
+            add { AddHandler(MeetSaved, value); }
+            remove { RemoveHandler(MeetSaved, value); }
+        }
+
+        public static readonly RoutedEvent CloseDialog =
+            EventManager.RegisterRoutedEvent("Close_Dialog",
+                RoutingStrategy.Direct, typeof(RoutedEventHandler), typeof(SetupUserControl));
+
+        public event RoutedEventHandler Close_Dialog
+        {
+            add { AddHandler(CloseDialog, value); }
+            remove { AddHandler(CloseDialog, value); }
         }
 
         #endregion

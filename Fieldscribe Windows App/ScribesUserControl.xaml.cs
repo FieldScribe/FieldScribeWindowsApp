@@ -149,7 +149,7 @@ namespace Fieldscribe_Windows_App
             RegisterProgressBar.Visibility = Visibility.Hidden;
            
             if (success)
-            {
+            {               
                 ScribesDialogHost.IsOpen = false;
 
                 // Add Scribe to list

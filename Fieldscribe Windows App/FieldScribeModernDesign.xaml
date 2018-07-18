@@ -68,7 +68,7 @@
         </EventTrigger>
     </Window.Triggers>
 
-    <materialDesign:DialogHost x:Name="RootDialogHost" Identifier="RootDialog">
+    <materialDesign:DialogHost x:Name="RootDialogHost" Identifier="RootDialog" DialogOpened="RootDialogHost_DialogOpened">
         <Grid Background="Black">
             <StackPanel x:Name="stackPanelMenu" Width="250" HorizontalAlignment="Left" Margin="-250 0 0 0" RenderTransformOrigin="0.5,0.5" Background="#2e3137">
                 <StackPanel.RenderTransform>

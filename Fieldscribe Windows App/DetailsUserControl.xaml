@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Fieldscribe_Windows_App"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="800">
+             d:DesignHeight="1000" d:DesignWidth="800">
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20">
@@ -19,7 +19,7 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="300"/>
+                            <RowDefinition Height="200"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
@@ -47,7 +47,7 @@
 
                         <TextBox Name="resultsPreviewTxt" TextWrapping="Wrap" VerticalAlignment="Stretch" Margin="20,30,20,0" AcceptsReturn="True" FontSize="24"
                          VerticalScrollBarVisibility="Auto" Background="White"  Grid.Row="2" Grid.ColumnSpan="2"
-                         Height="400" Text="PREVIEW ATHLETE RESULTS" IsReadOnly="True">
+                         Height="300" Text="PREVIEW ATHLETE RESULTS" IsReadOnly="True">
                         </TextBox>
 
                         <Button Style="{StaticResource MaterialDesignRaisedLightButton}" Width="200" 

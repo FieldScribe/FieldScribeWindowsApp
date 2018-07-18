@@ -2,6 +2,7 @@
 using Fieldscribe_Windows_App.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,11 +34,25 @@ namespace Fieldscribe_Windows_App
             // Only refresh results if there is a meet selected and shared folder selected
             if (AppDataModel.Instance.SelectedMeet != null && AppDataModel.Instance.FolderPath != String.Empty)
             {
-                ResultsBuilder resultsBuilder = new ResultsBuilder();
-                resultsBuilder.CreateAllResultsFiles(currentMeetId, AppDataModel.Instance.FolderPath);
-                ReadResultsEntries();
-                resultsBuilt = true;
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.DoWork += worker_RefreshResults;
+                worker.RunWorkerCompleted += worker_RefreshResultsComplete;
+                worker.RunWorkerAsync();               
             }
+        }
+
+        private void worker_RefreshResults(object sender, DoWorkEventArgs e)
+        {
+            ResultsBuilder resultsBuilder = new ResultsBuilder();
+            resultsBuilder.CreateAllResultsFiles(currentMeetId, AppDataModel.Instance.FolderPath);
+            ReadResultsEntries();
+
+            resultsBuilt = true;
+        }
+
+        private void worker_RefreshResultsComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            
         }
 
         public void RefreshScreen()

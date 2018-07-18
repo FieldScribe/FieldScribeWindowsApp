@@ -21,14 +21,12 @@
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
 
-
-            <DockPanel Margin="20">
-                <Border Background="#2e3137" CornerRadius="5" Margin="20">
+            <DockPanel Margin="5">
+                <Border Background="#2e3137" CornerRadius="5" Margin="5">
 
                     <StackPanel Margin="20">
                         <Label Content="Setup" Foreground="White" FontSize="25" 
                            HorizontalAlignment="Center" />
-
 
                         <Border BorderThickness="0" BorderBrush="{DynamicResource PrimaryHueMidBrush}"
                               MaxWidth="500" MinWidth="300" MinHeight="150" >
@@ -79,22 +77,170 @@
                                 <DockPanel Grid.Row="1">
 
                                     <Button x:Name="DeleteMeetBtn"
+                                        Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"    
                                         Padding="0,0,0,0" Height="20" Width="20" Background="Transparent" Foreground="White"
                                         BorderBrush="Transparent" Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Click="DeleteMeetBtn_Click" IsEnabled="{Binding Path=MeetSelected, Mode=TwoWay}"
+                                        Click="DeleteMeetBtn_Click" IsEnabled="{Binding Path=MeetSelected, Mode=OneWay}"
                                         ToolTip="Delete Selected Meet" Margin="300,0,5,0">
                                         <materialDesign:PackIcon x:Name="DeleteMeetIcon"
                                         Kind="Delete"
                                         Height="20"
                                         Width="20" />
+                                        
+                                        <Button.CommandParameter>
+                                            <StackPanel Margin="20">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="50"/>
+                                                        <RowDefinition Height="20"/>
+                                                        <RowDefinition Height="50"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <TextBlock Grid.Row="0" Text="Are you sure?" 
+                                                        FontSize="16" Margin="0,20,0,0"
+                                                        HorizontalAlignment="Center"/>
+
+                                                    <Grid Grid.Row="1">
+
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock x:Name="DeleteMeetMessage" Grid.Column="0" Foreground="Red"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Bottom">
+
+                                                        </TextBlock>
+
+                                                        <ProgressBar x:Name="DeleteMeetProgressBar" Grid.Column="0" Margin="0,0,0,0" 
+                                                            Visibility="Hidden" VerticalAlignment="Bottom"
+                                                            Width="120" IsIndeterminate="True" />
+                                                    </Grid>
+
+                                                    <Grid Grid.Row="2">
+
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Button x:Name="DeleteScribeYesBtn" Grid.Column="0" Width="70"
+                                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                                        Click="DeleteMeetYesBtn_Click">
+                                                            YES</Button>
+
+                                                        <Button Grid.Column="1"
+                                                        Style="{StaticResource MaterialDesignFlatButton}" 
+                                                        Width="90"  Padding="0,0,0,0"  IsCancel="True" 
+                                                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                                                            CANCEL</Button>
+                                                    </Grid>
+                                                </Grid>
+                                            </StackPanel>
+                                        </Button.CommandParameter>
+
                                     </Button>
 
                                     <Button x:Name="EditMeetBtn"
                                         Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"    
                                         Padding="0,0,0,0" Height="20" Width="20" Background="Transparent" Foreground="White"
                                         BorderBrush="Transparent" Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Click="EditMeetBtn_Click" IsEnabled="{Binding Path=MeetSelected, Mode=TwoWay}"    
+                                        Click="EditMeetBtn_Click" IsEnabled="{Binding Path=MeetSelected, Mode=OneWay}"    
                                         ToolTip="Edit Selected Meet" Margin="0,0,10,0">
+                                        <Button.CommandParameter>
+                                            <StackPanel Margin="20">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="20"/>
+                                                        <RowDefinition Height="*"/>
+                                                    </Grid.RowDefinitions>
+                                                </Grid>
+
+                                                <TextBox Grid.Row="0" x:Name="EditMeetNameBox" HorizontalAlignment="Left" 
+                                                      MinWidth="250" Margin="5 5 5 5" FontSize="14"
+                                                      materialDesign:HintAssist.Hint="Meet Name" CaretBrush="Black" 
+                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                    <TextBox.Text>
+                                                        <Binding Path="MeetName" UpdateSourceTrigger="PropertyChanged"/>
+                                                    </TextBox.Text>
+                                                </TextBox>
+
+                                                <TextBox Grid.Row="0" x:Name="EditMeetLocationBox" HorizontalAlignment="Left" 
+                                                      MinWidth="250" Margin="5 5 5 5" FontSize="14"
+                                                      materialDesign:HintAssist.Hint="Meet Location" CaretBrush="Black"
+                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                    <TextBox.Text>
+                                                        <Binding Path="MeetLocation" UpdateSourceTrigger="PropertyChanged"/>
+                                                    </TextBox.Text>
+                                                </TextBox>
+
+
+                                                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                                    <DatePicker x:Name="EditMeetDatePicker" materialDesign:HintAssist.Hint="Date"
+                                                        MinWidth="110" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
+                                                        Margin="5 15 10 10" FontSize="14"
+                                                        SelectedDate="{Binding MeetDate, Mode=TwoWay}"        
+                                                        Style="{StaticResource MaterialDesignFloatingHintDatePicker}" />
+
+                                                    <ComboBox
+                                                              materialDesign:HintAssist.Hint="measurement type" x:Name="EditMeetMeasurementPicker" 
+                                                              VerticalAlignment="Top" MinWidth="110" Margin="5 3.5 5 5"
+                                                              ItemsSource="{Binding LongListToTestComboVirtualization}"
+                                                              SelectedValue="{Binding MeasurementType, Mode=TwoWay}"
+                                                              Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+                                                        <ComboBox.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <VirtualizingStackPanel />
+                                                            </ItemsPanelTemplate>
+                                                        </ComboBox.ItemsPanel>
+                                                    </ComboBox>
+                                                </StackPanel>
+
+                                                <Grid Grid.Row="1">
+
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock x:Name="EditMeetMessage" Foreground="Red"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Bottom">
+
+                                                    </TextBlock>
+
+                                                    <ProgressBar x:Name="EditMeetProgressBar" Margin="0,0,0,0" 
+                                                            Visibility="Hidden" VerticalAlignment="Bottom"
+                                                            Width="120" IsIndeterminate="True" />
+                                                </Grid>
+
+                                                <Grid Grid.Row="2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Button x:Name="EditMeetSaveBtn" Grid.Column="0" Margin="0,10,0,0"
+                                                            IsEnabled="{Binding CreateEditMeetFormValid, Mode=OneWay}"
+                                                            Style="{StaticResource MaterialDesignFlatButton}" IsDefault="True"                                                         
+                                                            Click="EditMeetSaveBtnClick">
+                                                        <Button.CommandParameter>
+                                                            <system:Boolean>True</system:Boolean>
+                                                        </Button.CommandParameter>
+                                                        SAVE
+                                                    </Button>
+
+                                                    <Button Grid.Column="1" Margin="0,10,0,0"
+                                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                                            IsCancel="True"
+                                                            Command="materialDesign:DialogHost.CloseDialogCommand">
+                                                        <Button.CommandParameter>
+                                                            <system:Boolean>False</system:Boolean>
+                                                        </Button.CommandParameter>
+                                                        CANCEL
+                                                    </Button>
+                                                </Grid>
+                                            </StackPanel>
+
+                                        </Button.CommandParameter>
                                         <materialDesign:PackIcon x:Name="EditMeetIcon"
                                         Kind="Pencil"
                                         Height="20"
@@ -105,29 +251,49 @@
                                         Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}"  HorizontalAlignment="Left"  
                                         Padding="0,0,0,0" Height="22" Width="22" Background="Transparent" Foreground="White"
                                         BorderBrush="Transparent" Style="{StaticResource MaterialDesignRaisedButton}"
-                                        Click="AddMeetBtn_Click" ToolTip="Add a meet" Margin="0,0,10,0">
+                                        Click="CreateMeetBtn_Click" ToolTip="Add a meet" Margin="0,0,10,0">
 
                                         <Button.CommandParameter>
                                             <StackPanel Margin="20">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="20"/>
+                                                        <RowDefinition Height="*"/>
+                                                    </Grid.RowDefinitions>
+                                                </Grid>
 
-                                                <TextBox x:Name="MeetNameBox" HorizontalAlignment="Left" MinWidth="250" Margin="5 5 5 5" FontSize="14"
+                                                <TextBox Grid.Row="0" x:Name="CreateMeetNameBox" HorizontalAlignment="Left" 
+                                                      MinWidth="250" Margin="5 5 5 5" FontSize="14"
                                                       materialDesign:HintAssist.Hint="Meet Name" CaretBrush="Black" 
-                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}" />
+                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                    <TextBox.Text>
+                                                        <Binding Path="MeetName" UpdateSourceTrigger="PropertyChanged"/>
+                                                    </TextBox.Text>
+                                                </TextBox>
 
-                                                <TextBox x:Name="MeetLocationBox" HorizontalAlignment="Left" MinWidth="250" Margin="5 5 5 5" FontSize="14"
+                                                <TextBox Grid.Row="0" x:Name="CreateMeetLocationBox" HorizontalAlignment="Left" 
+                                                      MinWidth="250" Margin="5 5 5 5" FontSize="14"
                                                       materialDesign:HintAssist.Hint="Meet Location" CaretBrush="Black"
-                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}" />
+                                                      Style="{StaticResource MaterialDesignFloatingHintTextBox}">
+                                                    <TextBox.Text>
+                                                        <Binding Path="MeetLocation" UpdateSourceTrigger="PropertyChanged"/>
+                                                    </TextBox.Text>
+                                                </TextBox>
 
 
-                                                <StackPanel Orientation="Horizontal">
-                                                    <DatePicker x:Name="CreatMeetDatePicker" materialDesign:HintAssist.Hint="Date"
-                                                        MinWidth="110" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="5 15 10 10" FontSize="14"
+                                                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                                    <DatePicker x:Name="CreateMeetDatePicker" materialDesign:HintAssist.Hint="Date"
+                                                        MinWidth="110" VerticalAlignment="Bottom" HorizontalAlignment="Left" 
+                                                        Margin="5 15 10 10" FontSize="14"
+                                                        SelectedDate="{Binding MeetDate, Mode=TwoWay}"        
                                                         Style="{StaticResource MaterialDesignFloatingHintDatePicker}" />
 
                                                     <ComboBox
-                                                              materialDesign:HintAssist.Hint="measurement type" x:Name="MeasurementPicker" 
+                                                              materialDesign:HintAssist.Hint="measurement type" x:Name="CreateMeetMeasurementPicker" 
                                                               VerticalAlignment="Top" MinWidth="110" Margin="5 3.5 5 5"
                                                               ItemsSource="{Binding LongListToTestComboVirtualization}"
+                                                              SelectedValue="{Binding MeasurementType, Mode=TwoWay}"
                                                               Style="{StaticResource MaterialDesignFloatingHintComboBox}">
                                                         <ComboBox.ItemsPanel>
                                                             <ItemsPanelTemplate>
@@ -137,28 +303,48 @@
                                                     </ComboBox>
                                                 </StackPanel>
 
+                                                <Grid Grid.Row="1">
 
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                                                    <Button x:Name="CreateOrEditBtn" 
-                                                            Style="{StaticResource MaterialDesignFlatButton}" 
-                                                            IsDefault="True" Content="CREATE"
-                                                            Margin="0 8 8 0"
-                                                             
-                                                            Click="CreateOrEditBtnClick">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock x:Name="CreateMeetMessage" Foreground="Red"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Bottom">
+
+                                                    </TextBlock>
+
+                                                    <ProgressBar x:Name="CreateMeetProgressBar" Margin="0,0,0,0" 
+                                                            Visibility="Hidden" VerticalAlignment="Bottom"
+                                                            Width="120" IsIndeterminate="True" />
+                                                </Grid>
+
+                                                <Grid Grid.Row="2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Button x:Name="CreateMeetCreateBtn" Grid.Column="0" Margin="0,10,0,0"
+                                                            IsEnabled="{Binding CreateEditMeetFormValid, Mode=OneWay}"
+                                                            Style="{StaticResource MaterialDesignFlatButton}" IsDefault="True"                                                           
+                                                            Click="CreateMeetCreateBtnClick">
                                                         <Button.CommandParameter>
                                                             <system:Boolean>True</system:Boolean>
                                                         </Button.CommandParameter>
+                                                        CREATE
                                                     </Button>
-                                                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+
+                                                    <Button Grid.Column="1" Margin="0,10,0,0"
+                                                            Style="{StaticResource MaterialDesignFlatButton}"
                                                             IsCancel="True"
-                                                            Margin="0 8 8 0"
                                                             Command="materialDesign:DialogHost.CloseDialogCommand">
                                                         <Button.CommandParameter>
                                                             <system:Boolean>False</system:Boolean>
                                                         </Button.CommandParameter>
                                                         CANCEL
                                                     </Button>
-                                                </StackPanel>
+                                                </Grid>
                                             </StackPanel>
 
                                         </Button.CommandParameter>

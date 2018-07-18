@@ -38,7 +38,7 @@ namespace Fieldscribe_Windows_App
                 {
                     EventId = item.EventId,
                     EventNum = item.EventNum,
-                    RoundNum = item.FlightNum,
+                    RoundNum = item.RoundNum,
                     FlightNum = item.FlightNum,
                     EventName = item.EventName,
                     MeasurementSystem = item.MeasurementType

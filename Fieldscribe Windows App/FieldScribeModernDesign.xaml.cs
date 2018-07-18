@@ -29,6 +29,8 @@ namespace Fieldscribe_Windows_App
         private FolderWatcher _watcher;
         private static string _file = "lynx.evt";
         private TokenManager _tokenManager;
+        private (bool, string) _createMeetSucceeded = (false, null);
+        private Meet _meetToAddOrEdit = null;
 
         public FieldScribeModernDesign()
         {
@@ -47,11 +49,12 @@ namespace Fieldscribe_Windows_App
             setupPanel.MeetSelection_Changed += MeetSelectionChanged;
             setupPanel.FolderSelection_Changed += FolderSelectionChanged;
             setupPanel.StartStopBtn_Clicked += StartStopBtnClicked;
-            setupPanel.DeleteBtn_Clicked += DeleteBtnClicked;
+            setupPanel.Meet_Deleted += MeetDeleted;
             setupPanel.EditBtn_Clicked += EditBtnClicked;
             setupPanel.CreateMeetBtn_Clicked += CreateMeetBtnClicked;
-            setupPanel.SaveMeetBtn_Clicked += SaveMeetBtnClicked;
+            setupPanel.Meet_Saved += MeetSaved;
             setupPanel.MeetPicker_Open += MeetPickerOpen;
+            setupPanel.Close_Dialog += CloseDialog;
 
             try { _meets = GetMeets(); }
             catch (Exception e)
@@ -59,7 +62,11 @@ namespace Fieldscribe_Windows_App
                 // Will throw exception if not connected to internet
                 // TODO: Handle exception
             }
+        }
 
+        private void CloseDialog(object sender, RoutedEventArgs e)
+        {
+            RootDialogHost.IsOpen = false;
         }
 
         private void File_Changed(object sender, FileSystemEventArgs e)
@@ -128,101 +135,117 @@ namespace Fieldscribe_Windows_App
 
         private void MeetSelectionChanged(object sender, RoutedEventArgs e)
         {
-            ScribesPanelDataModel model =
+            ScribesPanelDataModel scribesDataModel =
                 ScribesPanelDataModel.Instance;
 
-            model.AssignedScribes = null;
+            SetupPanelDataModel setupDataModel =
+                SetupPanelDataModel.Instance;
+
+            scribesDataModel.AssignedScribes = null;
 
             if (setupPanel.MeetPicker.SelectedIndex >= 0)
             {
-                _appDataModel.MeetSelected = true;
                 _appDataModel.SelectedMeet = _meets[setupPanel.MeetPicker.SelectedIndex];
-
-                model.AssignedScribes = GetScribes(_appDataModel.SelectedMeet.MeetId);
+                setupDataModel.SelectedMeet = _meets[setupPanel.MeetPicker.SelectedIndex];
+                scribesDataModel.SelectedMeet = _meets[setupPanel.MeetPicker.SelectedIndex];
+                scribesDataModel.AssignedScribes = GetScribes(_appDataModel.SelectedMeet.MeetId);
 
                 // Filter Scribe from list
-                if (model.AssignedScribes != null)
-                    model.Scribes = model.Scribes.Where(x => !model.AssignedScribes
+                if (scribesDataModel.AssignedScribes != null)
+                    scribesDataModel.Scribes = scribesDataModel.Scribes.Where(
+                        x => !scribesDataModel.AssignedScribes
                     .Any(y => y.Id == x.Id)).ToList<User>();
             }
             else
             {
+                scribesDataModel.SelectedMeet = null;
+                setupDataModel.SelectedMeet = null;
                 _appDataModel.SelectedMeet = null;
             }
 
-            RefreshScribesList(model.Scribes);
-            RefreshAssignedScribesList(model.AssignedScribes);
+            RefreshScribesList(scribesDataModel.Scribes);
+            RefreshAssignedScribesList(scribesDataModel.AssignedScribes);
             ResetStartStopBtn();
         }
 
         private void CreateMeetBtnClicked(object sender, RoutedEventArgs e)
         {
-            if (CreateMeet(
-                new Meet
-                {
-                    MeetName = setupPanel.MeetNameBox.Text,
-                    MeetDate = (DateTime)setupPanel.CreatMeetDatePicker.SelectedDate,
-                    MeetLocation = setupPanel.MeetLocationBox.Text,
-                    MeasurementType = setupPanel.MeasurementPicker.SelectedItem.ToString()
-                }
-            ))
-            { _meets = GetMeets(); } // Refresh list of meets   
+            setupPanel.CreateMeetProgressBar
+                .Visibility = Visibility.Visible;
 
-            //RootDialogHost.IsOpen = false;
+            _meetToAddOrEdit = new Meet
+            {
+                MeetName = setupPanel.CreateMeetNameBox.Text,
+                MeetDate = (DateTime)setupPanel.CreateMeetDatePicker.SelectedDate,
+                MeetLocation = setupPanel.CreateMeetLocationBox.Text,
+                MeasurementType = setupPanel.CreateMeetMeasurementPicker.SelectedItem.ToString()
+            };
+
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += worker_CreateMeet;
+            worker.RunWorkerCompleted += worker_CreateMeetComplete;
+            worker.RunWorkerAsync();
         }
 
-        private void SaveMeetBtnClicked(object sender, RoutedEventArgs e)
+        private void worker_CreateMeet(object sender, DoWorkEventArgs e)
         {
-            if (EditMeet(
-                new Meet
-                {
-                    MeetId = _appDataModel.SelectedMeet.MeetId,
-                    MeetName = setupPanel.MeetNameBox.Text,
-                    MeetDate = (DateTime)setupPanel.CreatMeetDatePicker.SelectedDate,
-                    MeetLocation = setupPanel.MeetLocationBox.Text,
-                    MeasurementType = setupPanel.MeasurementPicker.SelectedItem.ToString()
-                }
-              ))
+            MeetsController meetController = new MeetsController();
+
+            _createMeetSucceeded = meetController.AddMeet(
+                _meetToAddOrEdit);
+        }
+
+        private void worker_CreateMeetComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            (bool success, string message) = _createMeetSucceeded;
+
+            setupPanel.CreateMeetProgressBar
+                .Visibility = Visibility.Hidden;
+
+            if (success)
             {
-                int index = setupPanel.MeetPicker.SelectedIndex;
-                _meets = GetMeets();
-                RefreshMeetPicker(_meets);
-                setupPanel.MeetPicker.SelectedIndex = index;
-                _appDataModel.SelectedMeet = _meets[setupPanel.MeetPicker.SelectedIndex];
+               _meets = GetMeets();
+               RootDialogHost.IsOpen = false;
             }
+            else
+            {
+                setupPanel.CreateMeetMessage.Visibility = Visibility.Visible;
+                setupPanel.CreateMeetMessage.Text = message;
+            }
+        }
+
+        private void MeetSaved(object sender, RoutedEventArgs e)
+        {
+            int meetId = _appDataModel.SelectedMeet.MeetId;
+
+            _meets = GetMeets();
+
+            RefreshMeetPicker(_meets);
+
+            setupPanel.MeetPicker.SelectedIndex = _meets.IndexOf(
+                _meets.FirstOrDefault(m => m.MeetId == meetId));
+
+            _appDataModel.SelectedMeet = _meets[setupPanel.MeetPicker.SelectedIndex];
         }
 
         private void FolderSelectionChanged(object sender, RoutedEventArgs e)
         {
+
             _appDataModel.FolderPath = setupPanel.SelectFolderText.Text;
+            SetupPanelDataModel.Instance.FolderSet = true;
             _watcher.WatchDirectory(_appDataModel.FolderPath, _file);
         }
 
-        private void DeleteBtnClicked(object sender, RoutedEventArgs e)
+        private void MeetDeleted(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result =
-                MessageBox.Show("Are you sure?", "Confirm Meet Deletion",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                if (DeleteMeet(_appDataModel.SelectedMeet))
-                {
-                    _meets = GetMeets();
-                    RefreshMeetPicker(_meets);
-                    _appDataModel.SelectedMeet = null;
-                }
-            }
+            _meets = GetMeets();
+            RefreshMeetPicker(_meets);
+            _appDataModel.SelectedMeet = null;
         }
 
         private void EditBtnClicked(object sender, RoutedEventArgs e)
         {
-            Meet m = _appDataModel.SelectedMeet;
-            // Index of selected meet?
-            setupPanel.MeetNameBox.Text = m.MeetName;
-            setupPanel.MeetLocationBox.Text = m.MeetLocation;
-            setupPanel.CreatMeetDatePicker.SelectedDate = m.MeetDate;
-            setupPanel.MeasurementPicker.SelectedItem = m.MeasurementType;
+
         }
 
         private void LogOut_Click(object sender, RoutedEventArgs e)
@@ -315,75 +338,6 @@ namespace Fieldscribe_Windows_App
             setupPanel.StartStopBtn.IsEnabled = true;
         }
 
-
-        private bool CreateMeet(Meet newMeet)
-        {
-            MeetsController meetController = new MeetsController();
-
-            var response = meetController.AddMeet(newMeet);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.Created)
-            {
-                // Success!
-                MessageBox.Show(newMeet.MeetName + " successfully added", "Success",
-                MessageBoxButton.OK, MessageBoxImage.None);
-                return true;
-            }
-            else
-            {
-                MessageBox.Show("Failed to add " + newMeet.MeetName + ": "
-                    + response.StatusCode.ToString(), "Failure",
-                MessageBoxButton.OK, MessageBoxImage.None);
-                return false;
-            }
-        }
-
-        private bool DeleteMeet(Meet meet)
-        {
-            bool success = false;
-            MeetsController mc = new MeetsController();
-            var response = mc.DeleteMeet(meet);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                // Success!
-                MessageBox.Show(meet.MeetName + " successfully deleted", "Success",
-                MessageBoxButton.OK, MessageBoxImage.None);
-                success = true;
-            }
-            else
-            {
-                MessageBox.Show("Deletion failed: " +
-                    response.StatusCode.ToString(), "Failure",
-                MessageBoxButton.OK, MessageBoxImage.None);
-            }
-
-            return success;
-        }
-
-        private bool EditMeet(Meet meet)
-        {
-            bool success = false;
-            MeetsController mc = new MeetsController();
-            var response = mc.EditMeet(meet);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                // Success!
-                MessageBox.Show("Edit succeeded", "Success",
-                MessageBoxButton.OK, MessageBoxImage.None);
-                success = true;
-            }
-            else
-            {
-                MessageBox.Show("Edit failed" +
-                    response.StatusCode.ToString(), "Failure",
-                MessageBoxButton.OK, MessageBoxImage.None);
-            }
-
-            return success;
-        }
-
         private void ResetStartStopBtn()
         {
             _appDataModel.UserReady = false;
@@ -462,6 +416,18 @@ namespace Fieldscribe_Windows_App
                 return scribes;
 
             return null;
+        }
+
+        private void RootDialogHost_DialogOpened(object sender, DialogOpenedEventArgs eventArgs)
+        {
+            if(SetupPanelDataModel.Instance.MeetName != null)
+            {
+                setupPanel.EditMeetNameBox.CaretIndex =
+                    SetupPanelDataModel.Instance.MeetName.Length;
+
+                setupPanel.EditMeetLocationBox.CaretIndex =
+                    SetupPanelDataModel.Instance.MeetLocation.Length;
+            }
         }
     }
 }

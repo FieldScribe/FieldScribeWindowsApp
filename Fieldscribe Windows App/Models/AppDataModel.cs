@@ -38,7 +38,7 @@ namespace Fieldscribe_Windows_App.Models
             }
         }
 
-        public string FolderPath // Use this to add results to the shared folder!!!
+        public string FolderPath
         {
             get { return _folderPath; }
             set

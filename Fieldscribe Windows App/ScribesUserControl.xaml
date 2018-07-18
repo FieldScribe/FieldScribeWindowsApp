@@ -31,16 +31,31 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
+                                    <TextBlock Grid.Column="0" x:Name="ScribesPanelMeetName" Margin="5,0,0,10" 
+                                        VerticalAlignment="Bottom" Foreground="LightGray" FontSize="12"
+                                        Text="{Binding Path=SelectedMeet.MeetName, Mode=TwoWay, StringFormat='Scribes for {0}:'}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility"  Value="Hidden"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=MeetSelected, Mode=OneWay}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    
                                     <Grid Grid.Column="2">
                                         <DockPanel>
                                             <Button Style="{DynamicResource MaterialDesignToolButton}">
                                                 <materialDesign:PackIcon Foreground="White" Kind="Magnify" Opacity=".99" />
                                             </Button>
                                             <TextBox x:Name="ScribesTextFilter" Margin="8 0 0 0" Foreground="White"
-                                     materialDesign:HintAssist.Hint="Search for scribe" 
-                                     materialDesign:TextFieldAssist.DecorationVisibility="Hidden" BorderThickness="0"
-                                     TextChanged="txtFilter_TextChanged"
-                                     MinWidth="200" VerticalAlignment="Center" />
+                                                 materialDesign:HintAssist.Hint="Search for scribe" 
+                                                 materialDesign:TextFieldAssist.DecorationVisibility="Hidden" BorderThickness="0"
+                                                 TextChanged="txtFilter_TextChanged"
+                                                 MinWidth="200" VerticalAlignment="Center" />
                                         </DockPanel>
                                     </Grid>
                                 </Grid>
@@ -77,15 +92,17 @@
                                     </ListBox>
 
                                     <Button Grid.Column ="1" x:Name="AddScribeBtn" Background="Transparent" BorderBrush="Transparent"
-                                    VerticalAlignment="Center" Margin="0,0,0,35" Padding="0,0,0,0" IsEnabled="False"
-                                    ToolTip="Add scribe to meet" Click="AddScribeBtn_Click">
+                                        VerticalAlignment="Center" Margin="0,0,0,35" Padding="0,0,0,0" 
+                                        IsEnabled="False" Click="AddScribeBtn_Click"
+                                        ToolTip="{Binding Path=SelectedMeet.MeetName, Mode=TwoWay, StringFormat='Add scribe to {0}'}">
                                         <materialDesign:PackIcon Foreground="White" Kind="ArrowLeftBold" Opacity=".99"
                                   Height="30" Width="30"/>
                                     </Button>
 
                                     <Button Grid.Column ="1" x:Name="RemoveScribeBtn" Background="Transparent" BorderBrush="Transparent"
-                                    VerticalAlignment="Center" Margin="0,35,0,0" Padding="0,0,0,0" IsEnabled="False"
-                                    ToolTip="Remove scribe from meet" Click="RemoveScribeBtn_Click">
+                                        VerticalAlignment="Center" Margin="0,35,0,0" Padding="0,0,0,0" IsEnabled="False"
+                                        ToolTip="{Binding Path=SelectedMeet.MeetName, Mode=TwoWay, StringFormat='Remove scribe from {0}'}" 
+                                        Click="RemoveScribeBtn_Click">
                                         <materialDesign:PackIcon Foreground="White" Kind="ArrowRightBold" Opacity=".99"
                                   Height="30" Width="30"/>
                                     </Button>
@@ -315,7 +332,7 @@
                                         </Button.CommandParameter>
 
                                         <materialDesign:PackIcon Foreground="White" Kind="AccountRemove" Opacity=".99"
-                                  Height="25" Width="25"/>
+                                             Height="25" Width="25"/>
                                     </Button>
 
                                     <Button x:Name="EditScribeBtn"

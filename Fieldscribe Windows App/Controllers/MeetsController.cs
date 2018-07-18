@@ -38,28 +38,32 @@ namespace Fieldscribe_Windows_App.Controllers
         // for more flexiblity. I want to have logic based on the StatusCode within the 
         // HttpResponseMessage. Could handle that here later.
 
-        public HttpResponseMessage AddMeet(Meet meet)
+        public (bool, string) AddMeet(Meet meet)
         {
             string jsonMeetObj = JsonConvert.SerializeObject(meet);
 
             var response = FieldScribeAPIRequests.POSTJsonWithTokenAsync(
                 jsonMeetObj, "meets", TokenManager.Instance.Token);
 
-            return response;            
+            if (response.StatusCode == System.Net.HttpStatusCode.Created)
+                return (true, null);
+
+                return (false, "Failed to create meet. Try again.");           
         }
 
-        public HttpResponseMessage DeleteMeet(Meet meet)
+        public (bool, string) DeleteMeet(int meetId)
         {
-            int meetId = meet.MeetId;
-
             var response = FieldScribeAPIRequests.POSTJsonWithTokenAsync(
-                "", "meets/" + meet.MeetId + "/delete",
+                "", "meets/" + meetId + "/delete",
                 TokenManager.Instance.Token);
 
-            return response;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return (true, null);
+
+            return (false, "Failed to delete meet. Try again.");
         }
 
-        public HttpResponseMessage EditMeet(Meet meet)
+        public (bool, string) EditMeet(Meet meet)
         {
             string jsonMeetObj = JsonConvert.SerializeObject(meet);
 
@@ -67,7 +71,17 @@ namespace Fieldscribe_Windows_App.Controllers
                 jsonMeetObj, "meets/" + meet.MeetId + "/edit",
                 TokenManager.Instance.Token);
 
-            return response;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                return (true, null);
+
+            return (false, "Meet edit failed. Try again.");
+        }
+
+        private string Message(HttpResponseMessage response)
+        {
+            return JObject.Parse(
+                response.Content.ReadAsStringAsync()
+                .Result)["message"].ToString();
         }
     }
 }
